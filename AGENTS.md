@@ -12,7 +12,7 @@ system is classified **high risk** (Annex III, critical infrastructure).
   `bias_detector.py`, `explainer.py`, `audit_logger.py`, `train_baseline.py`,
   `utils_io.py`)
 - `docs/` — Zensical documentation site (English)
-- `TRACCIAMENTO_MODIFICHE.md` — decision log D-01..D-37 (Italian)
+- `TRACCIAMENTO_MODIFICHE.md` — decision log D-01..D-38 (Italian)
 - `.github/` — CI/CD, templates, Copilot customizations
 
 ## Setup & Build Commands

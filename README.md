@@ -31,6 +31,10 @@ The script creates `.venv` and installs `requirements.txt`. On the first
 run, or with `--retrain`, it also trains the model. It then opens the
 dashboard at <http://localhost:8501>.
 
+Requires **Python 3.12+**. Dependencies are pinned to exact versions
+(D-38), so the model and every number in `consegna/` are identical on any
+machine.
+
 | Option                                 | Effect                                            |
 | -------------------------------------- | ------------------------------------------------- |
 | `--retrain`                            | Retrain the model even if `modello.joblib` exists |
@@ -62,7 +66,7 @@ python test_llm.py              # explanation engine: template and LLM
   failure vs an unnecessary inspection.
 - **Hidden bias found:** South and Islands have almost identical profiles,
   but recorded failure rates are 0.24 vs 0.45. Hypothesis: failures are
-  under-reported in the South, the only badly calibrated area (gap 0.177).
+  under-reported in the South, the only badly calibrated area (gap 0.178).
 - **Mitigations, measured before and after:**
   - `area_geografica` removed from the model: recall gap between areas
     0.41 → 0.22.
@@ -124,7 +128,7 @@ python test_llm.py              # explanation engine: template and LLM
 | [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications |
 | [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md) | 5–7 min demo script and answers to tests T1–T6 |
 
-Every decision (D-01..D-37) is recorded with its rationale in
+Every decision (D-01..D-38) is recorded with its rationale in
 [TRACCIAMENTO_MODIFICHE.md](TRACCIAMENTO_MODIFICHE.md) and cited in the
 code as `DECISIONE:` comments.
 
@@ -209,7 +213,7 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 ├── prova_test_giuria.py        # rehearsal of jury tests T1–T6
 ├── test_llm.py                 # explanation engine smoke test
 ├── consegna/                   # Tier 4 submission documents
-├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-37
+├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-38
 ├── zensical.toml               # documentation site configuration
 ├── requirements.txt            # application dependencies
 ├── requirements-docs.txt       # documentation dependencies

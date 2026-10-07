@@ -26,14 +26,14 @@ Sistema di manutenzione predittiva con supervisione umana per asset critici dell
 
 | Globale | AUC   | Recall | Precision | Accuracy | Guasti mancati | Ispezioni inutili |
 | ------- | ----- | ------ | --------- | -------- | -------------- | ----------------- |
-| Valore  | 0.868 | 0.837  | 0.371     | 0.717    | 21             | 183               |
+| Valore  | 0.868 | 0.837  | 0.372     | 0.718    | 21             | 182               |
 
 | Area   | Recall | FPR   | Gap calibrazione    |
 | ------ | ------ | ----- | ------------------- |
-| Nord   | 0.714  | 0.147 | 0.062               |
+| Nord   | 0.714  | 0.143 | 0.062               |
 | Centro | 0.750  | 0.242 | 0.064               |
-| Sud    | 0.882  | 0.688 | **0.177** (allerta) |
-| Isole  | 0.930  | 0.622 | −0.034              |
+| Sud    | 0.882  | 0.688 | **0.178** (allerta) |
+| Isole  | 0.930  | 0.622 | −0.033              |
 
 | Tipo asset      | Recall | Criticità utenza | Recall |
 | --------------- | ------ | ---------------- | ------ |
@@ -56,5 +56,5 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 - La sotto-segnalazione al Sud è un'ipotesi; il modello non la può correggere (il problema è nelle etichette). È gestita dalla supervisione: le decisioni del Sud non vengono mai auto-eseguite (D-19).
 - Il drift è simulato: il dataset non ha date (D-26).
 - Il rapporto di costo 10:1 è un'ipotesi del gruppo, non un dato aziendale.
-- 183 ispezioni inutili su 720: è il prezzo di un recall più alto.
-- I numeri vengono da un'esecuzione di `train_baseline.py`: con versioni diverse di scikit-learn possono cambiare di un caso (es. 182 invece di 183 ispezioni inutili). Prima della demo si rieseguono sulla macchina della demo.
+- 182 ispezioni inutili su 720: è il prezzo di un recall più alto.
+- Dipendenze fissate a versioni esatte (D-38): `train_baseline.py` produce gli stessi numeri su ogni macchina con Python ≥ 3.12.
