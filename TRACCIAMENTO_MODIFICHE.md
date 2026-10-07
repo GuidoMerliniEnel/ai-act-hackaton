@@ -40,6 +40,10 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 | ---- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------- |
 | D-19 | Allerta di calibrazione > 0.10 che promuove a HITL le decisioni HOTL dell'area          | Il bias nelle etichette non si corregge nel modello: lo gestisce la supervisione umana. Oggi scatta solo per il Sud (gap 0.177) | Gruppo                  | `bias_detector`, `imposta_promozioni` |
 | D-20 | Spiegazioni con LLM Azure, guardrail e fallback al template; limite risposta 2000 token | Più leggibili per l'operatore; con 400 token la risposta era vuota. Da confermare nel gruppo e motivare nella model card        | Tecnica (da confermare) | `explainer.py`                        |
+| D-21 | Soglie "sopra la norma" / "molto sopra" = 75° e 90° percentile della flotta | Con le soglie del kit il 68% degli asset risultava "sopra la norma" per giorni dall'ultima manutenzione: un giudizio che vale per tutti non informa | Tecnica | `explainer.ETICHETTE` |
+| D-22 | Nella spiegazione prima i fattori che aumentano il rischio | Il "perché" deve spiegare la raccomandazione: prima il fattore principale poteva ridurre il rischio. Ora 10 card su 10 partono da un fattore di rischio; incoerenze giudizio/direzione 3 su 30 | Tecnica | `estrai_fattori` |
+| D-23 | I tre fattori elencati sotto ogni spiegazione, con la loro direzione | Anche se l'LLM riassume, l'operatore vede sempre i tre fattori (KPI B1, test T4) | Tecnica | `app.py` card |
+| D-24 | Spiegazioni delle card visibili generate in parallelo; log protetto da lock | Primo caricamento da circa 30 s a 5 s. Senza lock, scritture concorrenti romperebbero la catena di hash | Tecnica | `app.py`, `audit_logger.log` |
 
 ## Cronologia git
 
@@ -116,8 +120,8 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - Con `confidenza = max(p, 1-p)` una decisione HOTL richiede $p \leq 0.2$: per questo il campione include casi a basso rischio.
 - Le decisioni bloccate da uno stop restano visibili in coda (sezione "Bloccate") e vanno risottomesse a mano (D-16).
 - Nel campione la probabilità massima è 0.79: `riduci_carico` (≥ 0.85) non viene mai proposto, quindi l'HIC scatta solo per utenze critiche.
-- Primo caricamento della dashboard lento (circa 30 s): le spiegazioni LLM delle 10 card vengono generate anche a card chiusa. Da sistemare nel Tier 3.
-- Alcune spiegazioni LLM risultano controintuitive ("211 giorni dall'ultima manutenzione, sopra la norma, che riduce il rischio"): il segno del contributo SHAP non coincide con il giudizio "sopra la norma". Rischio per il test T4, da sistemare nel Tier 3.
+- ~~Primo caricamento lento (circa 30 s)~~: risolto con D-24, ora circa 5 s.
+- ~~Spiegazioni controintuitive~~: risolto con D-21 e D-22. Restano 3 casi su 30 in cui un valore "nella norma" alza leggermente il rischio: è coerente con il modello, la direzione è mostrata accanto al fattore.
 - `test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`: il suo `rec` non include `soglia_confidenza` (in `app.py` è passata correttamente).
 - Dall'analisi baseline: recall Nord/Centro ~0.54 contro Isole 0.95; FPR Sud/Isole ~0.49 (da indagare per il test T5).
 
@@ -222,6 +226,6 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 ## Da fare
 
 - Tier 2: completato.
-- Tier 3: matrice con soglie, drift, override per area, audit filtrabile, spiegazioni in ogni card (più caricamento lento e spiegazioni controintuitive).
+- Tier 3: matrice con soglie, drift, override per area, audit filtrabile. Spiegazioni: fatto (D-21..D-24).
 - Tier 1: completato.
 - Tier 4: model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.

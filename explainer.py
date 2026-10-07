@@ -41,13 +41,14 @@ except ImportError:  # requests e' nel requirements; questo evita crash in modal
 # ---------------------------------------------------------------------------
 # Etichette operative delle feature: come le chiama un operatore, non un data scientist
 # ---------------------------------------------------------------------------
+# DECISIONE: soglie = 75° e 90° percentile della flotta (le soglie del kit davano "sopra la norma" al 68% degli asset)
 ETICHETTE = {
-    "vibrazione_indice": ("vibrazione", "indice", 6.0, 4.0),
-    "giorni_da_ultima_manutenzione": ("giorni dall'ultima manutenzione", "giorni", 300, 180),
-    "temperatura_media": ("temperatura di esercizio", "°C", 50, 45),
-    "eta_anni": ("età dell'asset", "anni", 25, 18),
-    "carico_pct": ("carico medio", "%", 85, 70),
-    "umidita_media": ("umidità ambientale", "%", 80, 70),
+    "vibrazione_indice": ("vibrazione", "indice", 3.8, 2.6),
+    "giorni_da_ultima_manutenzione": ("giorni dall'ultima manutenzione", "giorni", 410, 330),
+    "temperatura_media": ("temperatura di esercizio", "°C", 54, 48),
+    "eta_anni": ("età dell'asset", "anni", 28, 23),
+    "carico_pct": ("carico medio", "%", 91, 80),
+    "umidita_media": ("umidità ambientale", "%", 80, 72),
     "manutenzioni_ultimi_5anni": ("manutenzioni negli ultimi 5 anni", "interventi", None, None),
 }
 AZIONI_TESTO = {
@@ -123,7 +124,8 @@ def estrai_fattori(modello, riga, feature_names: list[str], n: int = 3, explaine
         imp = getattr(modello, "feature_importances_", np.ones(len(feature_names)) / len(feature_names))
         contributi = imp * x.reshape(-1)
 
-    idx = np.argsort(-np.abs(contributi))
+    # DECISIONE: prima i fattori che aumentano il rischio, cosi' il "perche'" spiega la raccomandazione
+    idx = sorted(range(len(contributi)), key=lambda i: (contributi[i] < 0, -abs(contributi[i])))
     out = []
     for i in idx:
         nome = feature_names[i]

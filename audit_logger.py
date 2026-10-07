@@ -15,6 +15,7 @@ TODO per il team:
 
 import hashlib
 import json
+import threading
 from datetime import datetime
 from pathlib import Path
 
@@ -23,8 +24,13 @@ class AuditLogger:
     def __init__(self, percorso: str = "audit_trail.jsonl"):
         self.path = Path(percorso)
         self._ultimo_hash = self._recupera_ultimo_hash()
+        self._lock = threading.Lock()   # scritture concorrenti romperebbero la catena di hash
 
     def log(self, attore: str, evento: str, raccomandazione=None, extra: dict = None):
+        with self._lock:
+            return self._log(attore, evento, raccomandazione, extra)
+
+    def _log(self, attore: str, evento: str, raccomandazione=None, extra: dict = None):
         record = {
             "timestamp": datetime.now().isoformat(),
             "attore": attore,                  # "SISTEMA" oppure id operatore

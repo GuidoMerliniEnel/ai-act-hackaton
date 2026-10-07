@@ -11,6 +11,7 @@ vostra: Streamlit e' solo il default comodo, potete usare React/Gradio.
 
 import pandas as pd
 import streamlit as st
+from concurrent.futures import ThreadPoolExecutor
 
 from audit_logger import AuditLogger
 from explainer import ConfigLLM, crea_spiegatore, estrai_fattori
@@ -46,7 +47,7 @@ def bootstrap():
             prob_guasto=round(float(riga["proba"]), 3),
             confidenza=round(float(riga["confidenza"]), 3),
             azione_proposta=proponi_azione(float(riga["proba"]), riga["criticita_utenza"]),
-            spiegazione=[],  # TODO: riempire con SHAP/feature importance
+            spiegazione=[],  # DECISIONE: fattori calcolati quando la card viene mostrata (SHAP costa ~1 s ad asset)
         )
         om.sottometti(r)
     return om, audit, pred, spiegatore
@@ -117,13 +118,13 @@ def _fattori_asset(asset_id: str):
     return estrai_fattori(modello, x, list(X.columns))
 
 
-def spiegazione_per(r):
+def spiegazione_per(r, fattori):
     """Spiegazione in linguaggio operativo per una raccomandazione in coda."""
     rec = {"asset_id": r.asset_id, "tipo_asset": r.tipo_asset, "area_geografica": r.area_geografica,
            "criticita_utenza": r.criticita_utenza, "prob_guasto": r.prob_guasto,
            "confidenza": r.confidenza, "azione_proposta": r.azione_proposta,
            "livello": getattr(r.livello, "value", None), "soglia_confidenza": om.soglia_conf}
-    return spiegatore.spiega(rec, _fattori_asset(r.asset_id))
+    return spiegatore.spiega(rec, fattori)
 
 
 tab_coda, tab_matrice, tab_bias, tab_audit, tab_kpi = st.tabs(
@@ -137,15 +138,23 @@ with tab_coda:
     st.metric("Decisioni in attesa di revisione umana", len(pendenti),
               delta=f"{sum(r.stato == StatoDecisione.ESCALATION for r in pendenti)} in escalation",
               delta_color="inverse")
-    for r in sorted(pendenti, key=lambda x: -x.prob_guasto)[:10]:
+    visibili = sorted(pendenti, key=lambda x: -x.prob_guasto)[:10]
+    # DECISIONE: spiegazioni delle card visibili in parallelo, altrimenti ~3 s di LLM per card in sequenza
+    fattori = [_fattori_asset(r.asset_id) for r in visibili]
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        spiegazioni = dict(zip([r.id for r in visibili], pool.map(spiegazione_per, visibili, fattori)))
+    for r in visibili:
         with st.expander(
                 f"{'🔴' if r.livello.value == 'HIC' else '🟠'} {r.asset_id} · "
                 f"{r.tipo_asset} · {r.area_geografica} · "
                 f"P(guasto)={r.prob_guasto} · conf={r.confidenza} · {r.livello.value}"):
             st.write(f"Azione proposta: **{r.azione_proposta}** · "
                      f"Utenza: {r.criticita_utenza}")
-            sp = spiegazione_per(r)
+            sp = spiegazioni[r.id]
             st.markdown(sp.testo)
+            st.markdown("**Fattori principali:** " + " · ".join(
+                f"{f.descrizione()} ({'aumenta' if f.contributo >= 0 else 'riduce'} il rischio)"
+                for f in sp.fattori))
             st.warning(sp.incertezza)
             st.caption(f"Fonte spiegazione: {sp.fonte} · {sp.latenza_ms} ms")
             mot = st.text_area("Motivazione (obbligatoria)", key=f"m{r.id}")
