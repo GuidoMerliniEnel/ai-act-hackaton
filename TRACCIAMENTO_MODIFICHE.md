@@ -13,7 +13,7 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `2f0556a` | Tier 2: stop sulla coda esistente, ambiti combinati, escalation SLA |
 | `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL |
 | `4687e92` | Tracciamento: cronologia git |
-| (prossimo) | Tier 1: soglia 0.30 e indagine Sud/Isole |
+| `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
