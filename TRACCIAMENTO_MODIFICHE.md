@@ -244,4 +244,10 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 - Tier 2: completato.
 - Tier 3: completato.
 - Tier 1: completato.
-- Tier 4: model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.
+- Tier 4: model card, relazione d'impatto e Dichiarazione di oversight redatte in `docs/compliance/` (da rivedere nel gruppo); restano la prova dei 6 test e la demo.
+
+## Allineamento OSPO
+
+- Repository allineato alle linee guida [Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO): `LICENSE` (Apache-2.0), `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/CODEOWNERS`, template di issue e PR, header SPDX nei sorgenti.
+- Sito di documentazione Zensical in `docs/` (inglese) con tema Enel Design System; workflow `docs.yml` per GitHub Pages.
+- Da [reference_architectures](https://github.com/ENEL-GICT-PTG/reference_architectures): istruzioni Copilot OP35/OP36, `AGENTS.md`, agente tech writer, skill `enel-design-system`, `renovate.json5` e gate di sicurezza e licenze in `ci.yml`.

@@ -1,0 +1,35 @@
+name: Feature request
+description: Propose a new feature or a change to an oversight decision
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Which operator or compliance need does this address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: dropdown
+    id: article
+    attributes:
+      label: AI Act requirement addressed
+      multiple: true
+      options:
+        - Art. 9 — Risk management
+        - Art. 10 — Data and data governance
+        - Art. 12 — Record-keeping
+        - Art. 13 — Transparency
+        - Art. 14 — Human oversight
+        - Art. 15 — Accuracy and robustness
+        - None
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision impact
+      description: Does this change an existing decision (D-NN)? Which KPI or test (A1–A6, T1–T6) shows it works?

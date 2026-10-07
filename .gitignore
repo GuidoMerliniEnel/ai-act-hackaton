@@ -5,3 +5,6 @@ modello.joblib
 predizioni.csv
 audit_trail.jsonl
 venv/
+.venv/
+site/
+.cache/

@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a defect in the model, the oversight layer or the dashboard
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do **not** report security vulnerabilities here. See [SECURITY.md](../blob/main/SECURITY.md).
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Oversight / routing (oversight_manager.py)
+        - Emergency stop
+        - Audit trail (audit_logger.py)
+        - Bias & drift (bias_detector.py)
+        - Explanations (explainer.py)
+        - Model / training (train_baseline.py)
+        - Dashboard (app.py)
+        - Documentation
+    validations:
+      required: true
+  - type: checkboxes
+    id: oversight
+    attributes:
+      label: Oversight impact
+      options:
+        - label: An action was executed without the required human review
+        - label: A state transition is missing from the audit trail
+        - label: The routing level differs from the oversight declaration
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include the asset ID and decision ID if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
