@@ -90,9 +90,9 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - Ma temperatura, vibrazione, carico e umidità sono identici tra le aree, e tipo asset e criticità hanno lo stesso mix.
 - Calibrazione: il modello prevede 0.40 al Sud contro uno 0.24 osservato (gap 0.159 > 0.10). Altrove il gap è circa 0.05.
 - FPR Sud 0.61 e Isole 0.67 contro 0.12-0.15 di Nord e Centro: `area_geografica` funziona da variabile proxy.
-- Ipotesi 1 (sotto-segnalazione al Nord e Centro): molti guasti non vengono registrati, quindi il tasso basso è un artefatto e il recall basso (0.54-0.68) non è reale.
-- Ipotesi 2 (processo di segnalazione diverso nelle aree con meno manutenzioni): i guasti registrati dipendono da chi ispeziona; meno manutenzioni, più guasti "scoperti" a posteriori.
-- Mitigazioni candidate (da implementare): soglia differenziata per area, promozione a HITL delle decisioni HOTL di Sud e Isole, allerta di calibrazione sopra 0.10.
+- **Correzione**: il confronto corretto è Sud contro Isole, non contro il Nord. Profili quasi identici (età 23 contro 25 anni, manutenzioni 2.1 contro 1.7, giorni dall'ultima 343 contro 386) ma guasti registrati 0.24 contro 0.45. A parità di rischio (vibrazione ≥ 6 o età ≥ 20): Sud 0.26, Isole 0.49.
+- Ipotesi principale: **sotto-segnalazione dei guasti al Sud**. Il modello, guardando i sensori, si aspetta per il Sud un tasso simile alle Isole (0.40) e osserva 0.24; il Sud è l'unica area mal calibrata.
+- Ipotesi alternativa: processi di registrazione diversi tra territori (chi ispeziona, quali guasti vengono classificati come tali). I dati non permettono di distinguerle: serve una verifica sul campo.
 
 ### Metriche disaggregate (soglia 0.30, test set 720 asset, recall globale 0.798)
 
@@ -121,15 +121,25 @@ Cosa dicono i numeri:
 
 Da discutere nel gruppo:
 
-1. Il recall basso di Nord e Centro è un difetto del modello o un effetto di guasti non registrati (ipotesi 1)? Cosa cambierebbe nella soglia per area?
+1. Il recall basso di Nord e Centro è un difetto del modello o un effetto di guasti non registrati? Cosa cambierebbe nella soglia per area?
 2. Per Sud e Isole conviene alzare la soglia (meno falsi positivi) o promuovere a HITL tutte le decisioni (più supervisione, stesso volume)?
 3. Il costo 10:1 tra falso negativo e falso positivo regge anche per utenze standard? Per le utenze critiche la decisione è comunque HIC.
 4. `area_geografica` va tolta dalle feature del modello, visto che fa da proxy?
 5. Quale mitigazione implementiamo e come ne misuriamo l'effetto prima e dopo (serve per il livello 4 della rubrica sulla fairness)?
 
+### Decisioni del gruppo
+
+Evidenze da un esperimento sul test set (modello con e senza area, soglie per area).
+
+1. **Limite del modello, non label bias.** I guasti mancati a Nord e Centro hanno vibrazione media 2.8 contro 4.6 di quelli intercettati: si guastano senza segnali dai sensori. Sono ben calibrati (gap circa 0.05). Lo dichiariamo come limite; abbassare la soglia lo riduce solo al prezzo di molte più ispezioni.
+2. **Nessun aumento di soglia al Sud; decisioni del Sud a HITL.** Se i guasti del Sud sono sotto-registrati, molti suoi "falsi positivi" possono essere guasti veri non segnalati. Con soglia 0.40 il recall del Sud scenderebbe da 0.88 a 0.65: il modello amplificherebbe il bias storico. Le Isole sono ben calibrate: FPR alto coerente con un tasso di guasto reale alto, nessuna modifica.
+3. **Soglia per criticità.** 10:1 resta l'ipotesi dichiarata per le utenze standard (0.30). Per utenze alte e critiche soglia 0.20: nel test 3 guasti mancati su utenze critiche e 6 su alte, e l'HIC protegge solo ciò che supera la soglia.
+4. **`area_geografica` tolta dal modello, tenuta per monitoraggio, stop e fairness.** Senza area: AUC 0.862 → 0.868, gap di recall 0.41 → 0.31, FPR Isole 0.67 → 0.47. Limite dichiarato: il gap di calibrazione del Sud peggiora (0.159 → 0.177), perché il bias sta nelle etichette e il proxy passa da età e manutenzioni.
+5. **Pacchetto di mitigazione, misurato prima e dopo**: area fuori dal modello; soglia per criticità; allerta di calibrazione sopra 0.10 che promuove automaticamente a HITL le decisioni HOTL dell'area interessata.
+
 ## Da fare
 
 - Tier 2: conferma stop e sblocco con doppia conferma; blocco attivo dei motivi duplicati in `revisiona` (oggi solo misurato da A4).
 - Tier 3: matrice con soglie, bias/calibrazione/override per area, drift, alert che promuove HOTL a HITL, audit filtrabile, spiegazioni in ogni card.
-- Tier 1: scelta della mitigazione per il label bias (punto 5 della discussione) e sua misura prima/dopo.
+- Tier 1: implementazione del pacchetto di mitigazione (decisione 5) e misura prima/dopo.
 - Tier 4: model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.
