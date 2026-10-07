@@ -60,7 +60,7 @@ one click. Every step is recorded in a tamper-evident log.
 
     ***
 
-    The 30 design decisions (D-01..D-30), with rationale and where they
+    The 35 design decisions (D-01..D-35), with rationale and where they
     live in the code.
 
     [:octicons-arrow-right-24: Decisions](decisions/index.md)

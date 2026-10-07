@@ -162,7 +162,7 @@ docs/
 ├── architecture/             # overview, modules, dataset
 ├── compliance/               # AI Act, model card, impact assessment, oversight declaration
 ├── quality/                  # KPIs A1–A6, verification tests T1–T6
-├── decisions/                # decision log D-01..D-30 (English)
+├── decisions/                # decision log D-01..D-35 (English)
 ├── project/                  # contributing, security, license
 ├── stylesheets/extra.css     # Enel Design System tokens (--enel-*)
 └── assets/images/            # logo.svg, favicon.svg
@@ -198,7 +198,7 @@ ai-act-hackaton/
 ├── utils_io.py                 # CSV loading and feature preparation
 ├── test_llm.py                 # Explanation engine smoke test
 ├── energuard_dataset*.csv      # Synthetic dataset (2,400 assets)
-├── TRACCIAMENTO_MODIFICHE.md   # Decision log D-01..D-30 (Italian)
+├── TRACCIAMENTO_MODIFICHE.md   # Decision log D-01..D-35 (Italian)
 ├── zensical.toml               # Documentation site configuration
 ├── requirements.txt            # Application dependencies
 └── requirements-docs.txt       # Documentation dependencies

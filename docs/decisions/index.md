@@ -9,8 +9,8 @@ and justified, or technical. The Italian source of truth is
 
 | ID | Decision | Rationale | Origin | Where |
 | -- | -------- | --------- | ------ | ----- |
-| <span id="d-01">D-01</span> | Threshold 0.30 for standard users (was 0.35) | A missed failure costs about 10× an unnecessary inspection (declared hypothesis). 0.20 would give 230 unnecessary inspections out of 720 and saturate the human queue | Team | `train_baseline.SOGLIE` |
-| <span id="d-02">D-02</span> | Threshold 0.20 for high and critical users | HIC only protects what crosses the threshold: a missed failure on a hospital never enters the queue. FN on critical/high 3/6 → 1/1 | Team | `train_baseline.SOGLIE` |
+| <span id="d-01">D-01</span> | Threshold 0.30 for standard users (was 0.35) | A missed failure costs about 10× an unnecessary inspection (declared hypothesis). 0.20 would give 230 unnecessary inspections out of 720 and saturate the human queue | Team | `utils_io.SOGLIE_PER_CRITICITA` |
+| <span id="d-02">D-02</span> | Threshold 0.20 for high and critical users | HIC only protects what crosses the threshold: a missed failure on a hospital never enters the queue. FN on critical/high 3/6 → 1/1 | Team | `utils_io.SOGLIE_PER_CRITICITA` |
 | <span id="d-03">D-03</span> | `area_geografica` out of the model, kept for monitoring and stop | It acts as a proxy for label bias. Without area AUC 0.868 (from 0.862), recall gap 0.41 → 0.22 | Team | `utils_io.prepara_feature` |
 | <span id="d-04">D-04</span> | Hypothesis: failures under-reported in the South | South and Islands have almost identical profiles but recorded failures 0.24 vs 0.45; only the South is badly calibrated | Team | [Dataset](../architecture/dataset.md) |
 | <span id="d-05">D-05</span> | No threshold increase in the South | South "false positives" may be real unrecorded failures; raising the threshold would amplify the bias (South recall 0.88 → 0.65) | Team | — |
@@ -38,7 +38,7 @@ and justified, or technical. The Italian source of truth is
 | ID | Decision | Rationale | Origin | Where |
 | -- | -------- | --------- | ------ | ----- |
 | <span id="d-19">D-19</span> | Calibration alert > 0.10 promotes the area's HOTL decisions to HITL | Label bias cannot be fixed in the model: human oversight manages it. Today it triggers only for the South (gap 0.177) | Team | `BiasDetector`, `imposta_promozioni` |
-| <span id="d-20">D-20</span> | LLM explanations (Azure) with guardrails and template fallback; 2,000-token output limit | More readable for operators; with 400 tokens the answer was empty. Non-determinism declared in the model card | Technical | `explainer.py` |
+| <span id="d-20">D-20</span> | LLM explanations (Azure) with guardrails and template fallback; 2,000-token output limit | More readable for operators in the expert details; with 400 tokens the answer was empty. Acceptable because the LLM does not decide, guardrails reject invented numbers, and the plain-language box uses fixed rules (D-33) | Team (confirmed) | `explainer.py` |
 | <span id="d-21">D-21</span> | "Above normal" / "well above" = 75th and 90th fleet percentile | With the kit thresholds 68% of assets were "above normal" for days since maintenance: a judgement that applies to everyone informs no one | Technical | `explainer.ETICHETTE` |
 | <span id="d-22">D-22</span> | Risk-increasing factors first in the explanation | The "why" must explain the recommendation. Now 10/10 cards start with a risk factor | Technical | `estrai_fattori` |
 | <span id="d-23">D-23</span> | Three factors listed under every explanation, with direction | Even if the LLM summarises, the operator always sees the three factors (B1, T4) | Technical | `app.py` card |
@@ -49,3 +49,8 @@ and justified, or technical. The Italian source of truth is
 | <span id="d-28">D-28</span> | Override alert if an area exceeds twice the average rate, with at least 3 reviews | Observable signal from the canvas; the minimum avoids alerts on 1–2 cases | Team | `override_per_area` |
 | <span id="d-29">D-29</span> | Audit: reconstruction per asset (who, what, when, why, AI approved or corrected), filterable log, CSV and JSONL export | T6 and D3: under 60 s, without opening the file | Technical | `app.py` Audit tab |
 | <span id="d-30">D-30</span> | Chain integrity always visible in the sidebar | Tampering must be evident on every screen, not only in the Audit tab | Technical | `app.py` sidebar |
+| <span id="d-31">D-31</span> | "In plain words" box at the top of every card for non-expert operators: traffic light, sentence, what to do, warnings | T4 is run by a non-technical juror; a tired operator must understand in seconds. Technical details stay below | Team | `explainer.guida_semplice`, `app.py` card |
+| <span id="d-32">D-32</span> | Probability stated as "about N in 10"; actions in everyday language | A frequency is easier to grasp than "P = 0.64"; the technical action name stays in the details | Technical | `guida_semplice`, `AZIONI_SEMPLICI` |
+| <span id="d-33">D-33</span> | The plain-language box uses fixed rules, not the LLM | Instant, repeatable, no invented numbers, no network dependency for the part everyone must understand | Technical | `guida_semplice` |
+| <span id="d-34">D-34</span> | "What if" scenario: the model re-predicts with the main factor set to the fleet median and says whether intervention would still be required | Contrastive explanation (rubric level 4), computed rather than hand-written | Technical | `explainer.scenario_media` |
+| <span id="d-35">D-35</span> | `prova_test_giuria.py` runs the six jury tests on temporary logs | Repeatable rehearsal before the demo; does not touch the real log or `.env`. Currently 8/8 checks pass | Technical | `prova_test_giuria.py` |

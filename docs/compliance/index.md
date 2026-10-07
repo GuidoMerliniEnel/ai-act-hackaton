@@ -48,6 +48,10 @@ In a real deployment:
 
 ## Deliverables
 
+The official deliverables are the Italian documents in `consegna/`
+(model card, impact assessment, oversight declaration, demo script and test
+answers). The pages below are their English summaries.
+
 - [Model card](model-card.md)
 - [Impact assessment](impact-assessment.md)
 - [Oversight declaration](oversight-declaration.md)

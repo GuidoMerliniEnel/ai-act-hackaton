@@ -76,7 +76,10 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `2f738b2` | Tier 3: spiegazioni (D-21..D-24)                                    |
 | `772495f` | Tier 3: matrice, drift, override per area, audit (D-25..D-30)       |
 | `abec779` | Card "In parole semplici" con scenario "e se..." (D-31..D-34)       |
-| (questo)  | Tier 4: documenti di consegna e prova dei 6 test (D-35)             |
+| `a110082` | Tier 4: documenti di consegna e prova dei 6 test (D-35)             |
+| `afa66dd` | Formattazione tabelle in `consegna/` e tracciamento                  |
+| `1ceea5a` | Merge di `tier4` (Marco Gazzuolo): OSPO, sito `docs/`, test_llm      |
+| (questo)  | Allineamento di `docs/` alla consegna ufficiale                      |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -259,3 +262,14 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 - Repository allineato alle linee guida [Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO): `LICENSE` (Apache-2.0), `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/CODEOWNERS`, template di issue e PR, header SPDX nei sorgenti.
 - Sito di documentazione Zensical in `docs/` (inglese) con tema Enel Design System; workflow `docs.yml` per GitHub Pages.
 - Da [reference_architectures](https://github.com/ENEL-GICT-PTG/reference_architectures): istruzioni Copilot OP35/OP36, `AGENTS.md`, agente tech writer, skill `enel-design-system`, `renovate.json5` e gate di sicurezza e licenze in `ci.yml`.
+
+## Merge del branch `tier4`
+
+- **Origine**: tre commit di Marco Gazzuolo (`ee05562`, `d5d6113`, `da77f29`), partiti da `772495f` (fine Tier 3). Non contenevano la card "In parole semplici" né `consegna/`.
+- **Esito**: un solo conflitto, in questo file (riga "Tier 4" più sezione OSPO), risolto tenendo entrambe le parti. Il codice Python si è fuso da solo: intestazioni SPDX, docstring da TODO a DECISIONI in `audit_logger.py` e `oversight_manager.py`, `test_llm.py` con `soglia_confidenza` e `proponi_azione`. Dopo il merge: sintassi ok, `prova_test_giuria.py` 8/8.
+- **Decisione: la consegna ufficiale è `consegna/` (italiano)**; `docs/` è la versione inglese di supporto e lo dichiara in apertura.
+- **Allineamenti fatti in `docs/`**: numeri della model card ricalcolati da `predizioni.csv` di questa macchina (precision 0.371, accuracy 0.717, FPR Nord 0.147, FPR per tipo e criticità); registro inglese con D-20 confermata dal gruppo, soglie in `utils_io.SOGLIE_PER_CRITICITA`, D-31..D-35; contatori "D-01..D-35" in `docs/index.md`, `README.md`, `AGENTS.md`.
+- **Punti aperti da decidere nel gruppo**:
+  - Licenza Apache-2.0 con "Copyright Enel SpA" su un repository pubblico che contiene anche i PDF del corso Deloitte × ENEL: verificare che sia consentito.
+  - `ci.yml` parte a ogni push con controlli di sicurezza e licenze: verificare il primo esito su GitHub Actions.
+  - GitHub Pages pubblica il sito solo dopo l'attivazione manuale in Settings → Pages: decidere se attivarla.

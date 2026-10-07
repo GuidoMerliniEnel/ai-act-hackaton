@@ -1,5 +1,10 @@
 # Model Card
 
+!!! note "Official deliverable"
+    The official, Italian model card handed in for the hackathon is
+    `consegna/1_Model_Card.md`. This page is the English summary; numbers
+    come from the same `predizioni.csv`.
+
 ## Purpose
 
 Predict the probability that a grid asset fails **within 30 days**, so that
@@ -30,7 +35,7 @@ data without re-validation.
 | Decision threshold  | 0.30 for standard users; 0.20 for high and critical users ([D-01](../decisions/index.md#d-01), [D-02](../decisions/index.md#d-02)) |
 | Cost assumption     | A missed failure costs about 10 times an unnecessary inspection (declared hypothesis) |
 | Confidence          | `max(p, 1-p)` ([D-07](../decisions/index.md#d-07))        |
-| Explanations        | Top three SHAP factors, rendered by template or LLM with guardrails ([D-20](../decisions/index.md#d-20)) |
+| Explanations        | Plain-language box by fixed rules with a computed "what if" scenario ([D-31](../decisions/index.md#d-31)..[D-34](../decisions/index.md#d-34)); expert details: top three SHAP factors rendered by LLM with guardrails and template fallback ([D-20](../decisions/index.md#d-20)) |
 
 ## Global metrics (test set, 720 assets)
 
@@ -38,8 +43,8 @@ data without re-validation.
 | ----------- | ----- |
 | AUC         | 0.868 |
 | Recall      | 0.837 |
-| Precision   | 0.372 |
-| Accuracy    | 0.718 |
+| Precision   | 0.371 |
+| Accuracy    | 0.717 |
 | Missed failures (FN) | 21 (1 critical, 1 high) |
 | Unnecessary inspections (FP) | 183 |
 
@@ -49,10 +54,10 @@ data without re-validation.
 
 | Area   | n   | Real failures | Selection | Recall | FPR   | Calibration gap |
 | ------ | --- | ------------- | --------- | ------ | ----- | --------------- |
-| Nord   | 300 | 0.093         | 0.197     | 0.714  | 0.143 | 0.062           |
+| Nord   | 300 | 0.093         | 0.200     | 0.714  | 0.147 | 0.062           |
 | Centro | 189 | 0.127         | 0.307     | 0.750  | 0.242 | 0.064           |
 | Sud    | 143 | 0.238         | 0.734     | 0.882  | 0.688 | **0.177**       |
-| Isole  | 88  | 0.489         | 0.773     | 0.930  | 0.622 | −0.033          |
+| Isole  | 88  | 0.489         | 0.773     | 0.930  | 0.622 | −0.034          |
 
 Calibration gap = mean predicted probability − observed failure rate.
 Alert threshold: 0.10.
@@ -62,16 +67,16 @@ Alert threshold: 0.10.
 | Asset type      | n   | Recall | FPR   |
 | --------------- | --- | ------ | ----- |
 | cabina_primaria | 135 | 0.810  | 0.333 |
-| trasformatore   | 271 | 0.814  | 0.329 |
-| linea_AT        | 171 | 0.824  | 0.299 |
-| turbina_eolica  | 143 | 0.903  | 0.250 |
+| trasformatore   | 271 | 0.814  | 0.333 |
+| linea_AT        | 171 | 0.824  | 0.307 |
+| turbina_eolica  | 143 | 0.903  | 0.241 |
 
 ### By user criticality
 
 | Criticality | n   | Recall | FPR   |
 | ----------- | --- | ------ | ----- |
 | standard    | 462 | 0.765  | 0.252 |
-| alta        | 198 | 0.971  | 0.415 |
+| alta        | 198 | 0.971  | 0.421 |
 | critica     | 60  | 0.929  | 0.391 |
 
 ## Known limitations
