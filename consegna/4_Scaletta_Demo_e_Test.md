@@ -1,6 +1,6 @@
 # Scaletta demo (5-7 minuti) e prove dei test
 
-Prima della demo: `python prova_test_giuria.py` (deve dare 9/9), poi `./run_dashboard.sh` (Windows: `run_dashboard.bat`) dalla cartella del kit. Aprire la dashboard almeno 30 secondi prima: il primo caricamento genera le spiegazioni. Con le dipendenze di `requirements.txt` (D-38) i conteggi citati sotto sono quelli che si vedranno.
+Prima della demo: `python prova_test_giuria.py` (deve dare 10/10), poi `./run_dashboard.sh` (Windows: `run_dashboard.bat`) dalla cartella del kit. Aprire la dashboard almeno 30 secondi prima: il primo caricamento genera le spiegazioni. Con le dipendenze di `requirements.txt` (D-38) i conteggi citati sotto sono quelli che si vedranno.
 
 ## Demo
 

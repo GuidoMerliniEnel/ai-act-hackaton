@@ -31,7 +31,7 @@ The script creates `.venv` and installs `requirements.txt`. On the first
 run, or with `--retrain`, it also trains the model. It then opens the
 dashboard at <http://localhost:8501>.
 
-Requires **Python 3.12+**. Dependencies are pinned to exact versions
+Requires **Python 3.11+** (the version of the hackathon kit). Dependencies are pinned to exact versions
 (D-38), so the model and every number in `consegna/` are identical on any
 machine.
 
@@ -39,7 +39,7 @@ machine.
 | -------------------------------------- | ------------------------------------------------- |
 | `--retrain`                            | Retrain the model even if `modello.joblib` exists |
 | `--port N`                             | Serve on port `N` (`.sh` only, default 8501)      |
-| `PYTHON=python3.12 ./run_dashboard.sh` | Use a specific interpreter                        |
+| `PYTHON=python3.11 ./run_dashboard.sh` | Use a specific interpreter                        |
 
 Stop with `Ctrl+C`. The queue lives in memory and
 resets on restart; only `audit_trail.jsonl` persists.
@@ -51,7 +51,7 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python train_baseline.py        # modello.joblib + predizioni.csv, prints fairness report
 streamlit run app.py            # dashboard
-python prova_test_giuria.py     # rehearsal of the 6 jury tests (expect 9/9)
+python prova_test_giuria.py     # rehearsal of the 6 jury tests (expect 10/10)
 python test_llm.py              # explanation engine: template and LLM
 ```
 
@@ -126,7 +126,7 @@ python test_llm.py              # explanation engine: template and LLM
   - Reviewers differentiated by competence are declared as a limit, not
     implemented.
 - **`prova_test_giuria.py`:** repeatable rehearsal of tests T1–T6 on
-  temporary logs. Result: 9/9.
+  temporary logs. Result: 10/10 (T0 checks the submission numbers are reproduced).
 
 ### Deep bias audit (D-43..D-45)
 
@@ -150,8 +150,9 @@ python test_llm.py              # explanation engine: template and LLM
 | [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications |
 | [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md) | 5–7 min demo script and answers to tests T1–T6 |
 | [5_Discorso_Presentazione.md](consegna/5_Discorso_Presentazione.md) | Full presentation speech, timed to the demo script |
+| [6_Allegato_Versione_Estesa.md](consegna/6_Allegato_Versione_Estesa.md) | Extended version of documents 1–3 (deep bias analysis, all limits); 1–3 respect the jury page limits |
 
-Every decision (D-01..D-45) is recorded with its rationale in
+Every decision (D-01..D-47) is recorded with its rationale in
 [TRACCIAMENTO_MODIFICHE.md](TRACCIAMENTO_MODIFICHE.md) and cited in the
 code as `DECISIONE:` comments.
 
@@ -236,7 +237,7 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 ├── prova_test_giuria.py        # rehearsal of jury tests T1–T6
 ├── test_llm.py                 # explanation engine smoke test
 ├── consegna/                   # Tier 4 submission documents
-├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-45
+├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-47
 ├── zensical.toml               # documentation site configuration
 ├── requirements.txt            # application dependencies
 ├── requirements-docs.txt       # documentation dependencies

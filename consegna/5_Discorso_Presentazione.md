@@ -1,6 +1,6 @@
 # Discorso di presentazione · EnerGuard (6-7 minuti)
 
-Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_e_Test.md). Tra parentesi quadre cosa fare sullo schermo. Prima di iniziare: `python prova_test_giuria.py` (9/9) e `./run_dashboard.sh` aperto da almeno 30 secondi.
+Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_e_Test.md). Tra parentesi quadre cosa fare sullo schermo. Prima di iniziare: `python prova_test_giuria.py` (10/10) e `./run_dashboard.sh` aperto da almeno 30 secondi.
 
 ---
 
@@ -117,7 +117,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > EnerGuard non rende il modello più intelligente. Rende **visibile, misurabile e interrompibile** ciò che il modello fa, e lascia all'umano le decisioni che contano.
 >
-> I sei test della giuria li abbiamo già provati: 9 verifiche su 9. Siamo pronti per le vostre domande.
+> I sei test della giuria li abbiamo già provati: 10 verifiche su 10. Siamo pronti per le vostre domande.
 
 ---
 

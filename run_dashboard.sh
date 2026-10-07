@@ -17,13 +17,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 PYTHON="${PYTHON:-python3}"
-# D-38: con Python < 3.12 le versioni fissate non si installano e i numeri cambierebbero
-if ! "$PYTHON" -c 'import sys; sys.exit(sys.version_info < (3, 12))'; then
-  echo "Serve Python >= 3.12 (trovato $("$PYTHON" --version 2>&1)). Usa PYTHON=python3.12 ./run_dashboard.sh" >&2
+# D-38, D-46: con Python < 3.11 le versioni fissate non si installano e i numeri cambierebbero
+if ! "$PYTHON" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
+  echo "Serve Python >= 3.11 (trovato $("$PYTHON" --version 2>&1)). Usa PYTHON=python3.11 ./run_dashboard.sh" >&2
   exit 1
 fi
-if [[ -x .venv/bin/python ]] && ! .venv/bin/python -c 'import sys; sys.exit(sys.version_info < (3, 12))'; then
-  echo ".venv usa Python < 3.12: cancellalo (rm -rf .venv) e rilancia lo script" >&2
+if [[ -x .venv/bin/python ]] && ! .venv/bin/python -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
+  echo ".venv usa Python < 3.11: cancellalo (rm -rf .venv) e rilancia lo script" >&2
   exit 1
 fi
 if [[ ! -d .venv ]]; then
