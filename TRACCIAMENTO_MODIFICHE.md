@@ -2,6 +2,45 @@
 
 Registro cronologico di ciò che è stato cambiato rispetto allo starter kit, con il motivo.
 
+## Registro delle decisioni (per la presentazione)
+
+Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" indica se la scelta è del gruppo, del kit (default mantenuto e motivato) o tecnica.
+
+### Modello e dati (Tier 1)
+
+| ID | Decisione | Razionale | Origine | Dove |
+| --- | --- | --- | --- | --- |
+| D-01 | Soglia 0.30 per utenze standard (prima 0.35) | Un guasto non previsto costa circa 10 volte un'ispezione inutile (ipotesi dichiarata). 0.20 darebbe 230 ispezioni inutili su 720 e saturerebbe la coda umana | Gruppo | `train_baseline.py` `SOGLIE` |
+| D-02 | Soglia 0.20 per utenze alte e critiche | L'HIC protegge solo ciò che supera la soglia: un guasto mancato su un ospedale non entra mai in coda. FN su critiche/alte da 3/6 a 1/1 | Gruppo | `train_baseline.py` `SOGLIE` |
+| D-03 | `area_geografica` fuori dal modello, tenuta per monitoraggio e stop | Fa da proxy del label bias. Senza area AUC 0.868 (da 0.862), gap di recall 0.41 → 0.22 | Gruppo | `utils_io.prepara_feature` |
+| D-04 | Ipotesi: sotto-segnalazione dei guasti al Sud | Sud e Isole hanno profili quasi identici ma guasti registrati 0.24 contro 0.45; solo il Sud è mal calibrato | Gruppo | `TRACCIAMENTO` § Anomalia |
+| D-05 | Nessun aumento di soglia al Sud | I "falsi positivi" del Sud possono essere guasti veri non registrati: alzare la soglia amplificherebbe il bias (recall Sud 0.88 → 0.65) | Gruppo | — |
+| D-06 | Recall basso di Nord/Centro dichiarato come limite | I guasti mancati non hanno segnali dai sensori (vibrazione 2.8 contro 4.6); calibrazione corretta, quindi non è label bias | Gruppo | Relazione d'impatto |
+| D-07 | Confidenza = $\max(p, 1-p)$ | Default del kit, semplice e spiegabile. Limite: con soglia 0.80 il caso HOTL richiede $p \leq 0.20$ | Kit | `train_baseline.py` |
+
+### Supervisione umana (Tier 2)
+
+| ID | Decisione | Razionale | Origine | Dove |
+| --- | --- | --- | --- | --- |
+| D-08 | Routing: HIC se utenza critica o riduzione carico su utenza alta; HITL se $P \geq 0.60$, confidenza < 0.80, area con allerta o azione non leggera; HOTL solo per routine a basso rischio | Il veto umano assoluto dove l'errore è irreversibile (ospedali); l'AI agisce da sola solo dove l'errore costa poco ed è reversibile (canvas) | Kit + gruppo | `oversight_manager.route` |
+| D-09 | Azione proposta da regole: ≥ 0.85 riduci carico (solo utenze non standard) o ispezione urgente; ≥ 0.60 manutenzione; ≥ 0.10 routine | Il kit proponeva sempre "manutenzione": l'azione deve crescere con il rischio | Tecnica | `proponi_azione` |
+| D-10 | Un solo punto di esecuzione con controlli | Una decisione rifiutata, in attesa, HIC auto-eseguita o sotto stop non può raggiungere `_esegui` (test T1) | Kit + tecnica | `_esegui` |
+| D-11 | Motivazione obbligatoria ≥ 15 caratteri; motivazioni fotocopia bloccate; < 30 caratteri misurate | Una motivazione vuota, "ok" o copiata non è un giudizio (test T2, KPI A4) | Kit + tecnica | `revisiona` |
+| D-12 | SLA 30 minuti: oltre, ESCALATION; escalation anche manuale | Una decisione non revisionata non viene mai eseguita in silenzio | Kit + tecnica | `controlla_sla` |
+| D-13 | Stop a tre granularità più combinazioni (es. linee AT del Sud), anche sulla coda esistente | "Fermare" vale anche per ciò che è già in coda; sotto stop nessuna revisione (test T3) | Tecnica | `attiva_stop`, `_match_ambito` |
+| D-14 | Attivazione stop: un click più conferma, motivazione obbligatoria | Rapido ma non accidentale (test T3) | Tecnica | `app.py` sidebar |
+| D-15 | Riattivazione: motivazione, presa visione e secondo operatore diverso | Togliere uno stop è più rischioso che metterlo: principio dei quattro occhi (Art. 14(5)) | Tecnica | `disattiva_stop` |
+| D-16 | Decisioni bloccate restano bloccate dopo lo sblocco; rientrano solo se risottomesse, una volta, rivalutate da zero | Evita rumore e derive: nessuna decisione presa prima dell'incidente riparte in automatico | Gruppo | `risottometti` |
+| D-17 | KPI A1–A6 in dashboard; A6 confronta il routing con una copia separata della matrice dichiarata | Un sistema che non misura la propria supervisione non è supervisionabile | Tecnica | `kpi`, `livello_dichiarato` |
+| D-18 | Campione demo: 40 positive più 8 a basso rischio | Senza casi a basso rischio il ramo HOTL non si vedrebbe mai | Tecnica | `app.py` bootstrap |
+
+### Monitoraggio e spiegabilità (Tier 3)
+
+| ID | Decisione | Razionale | Origine | Dove |
+| --- | --- | --- | --- | --- |
+| D-19 | Allerta di calibrazione > 0.10 che promuove a HITL le decisioni HOTL dell'area | Il bias nelle etichette non si corregge nel modello: lo gestisce la supervisione umana. Oggi scatta solo per il Sud (gap 0.177) | Gruppo | `bias_detector`, `imposta_promozioni` |
+| D-20 | Spiegazioni con LLM Azure, guardrail e fallback al template; limite risposta 2000 token | Più leggibili per l'operatore; con 400 token la risposta era vuota. Da confermare nel gruppo e motivare nella model card | Tecnica (da confermare) | `explainer.py` |
+
 ## Cronologia git
 
 Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato originale e reintrodotte come commit separati; nel codice i TODO risolti sono sostituiti da commenti `DECISIONE:` con il razionale. `.env`, `modello.joblib`, `predizioni.csv` e `audit_trail.jsonl` sono ignorati.
@@ -14,6 +53,11 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL      |
 | `4687e92` | Tracciamento: cronologia git                                        |
 | `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole                            |
+| `79baf23` | Tier 1: metriche disaggregate e punti di discussione                 |
+| `7effb0a` | Tier 1: correzione ipotesi e decisioni del gruppo                    |
+| `ad8cfd0` | Mitigazione: area fuori dal modello, soglie per criticità            |
+| `f580a5e` | Mitigazione: allerta di calibrazione con promozione a HITL           |
+| (questo)  | Tier 2: conferma stop, sblocco a quattro occhi, risottomissione, fotocopie |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -59,11 +103,21 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - Test su log temporaneo: rifiuto (T1), motivazione vuota e "ok" respinte (T2), stop parziale su linee AT del Sud (T3), escalation SLA simulata. Catena di hash integra.
 - Test KPI su log temporaneo: HOTL auto-eseguita, HIC/HITL in coda; A1 = 0, A4 = 0.667 con una motivazione duplicata e una breve, A6 = 100%.
 - Dashboard avviata su `http://localhost:8501` (UI non ancora provata con i pulsanti).
+- **Prova dal vivo nella dashboard (Tier 2 chiuso)**:
+  - T2: rifiuto di AST-00869 con motivazione "ok" respinto con messaggio.
+  - T1: rifiuto con motivazione vera; la decisione esce dalla coda (43 → 42), nessuna `[ESECUZIONE]` nel terminale, evento `revisione_RIFIUTATA` nel log con motivazione e operatore.
+  - T3: stop su `area:Sud+tipo:linea_AT` con conferma; 8 decisioni bloccate (coda 42 → 34), restano attive la turbina del Sud e la linea AT del Nord; stato "STOP ATTIVI" in sidebar; evento nel log con motivazione e ID bloccati.
+  - Sblocco: con lo stesso operatore come conferma respinto; con OP-007 accettato e registrato (`confermato_da`). Le 8 decisioni restano bloccate.
+  - Catena di hash integra (415 record).
+- Test automatici su log temporaneo: sblocco senza secondo operatore respinto, risottomissione sotto stop respinta, risottomissione unica (stato `RISOTTOMESSA`), motivazione fotocopia respinta anche con maiuscole e spazi diversi.
 
 ## Note e limiti noti
 
 - Con `confidenza = max(p, 1-p)` una decisione HOTL richiede $p \leq 0.2$: per questo il campione include casi a basso rischio.
-- Le nuove decisioni bloccate da uno stop finiscono nel log ma non nella coda.
+- Le decisioni bloccate da uno stop restano visibili in coda (sezione "Bloccate") e vanno risottomesse a mano (D-16).
+- Nel campione la probabilità massima è 0.79: `riduci_carico` (≥ 0.85) non viene mai proposto, quindi l'HIC scatta solo per utenze critiche.
+- Primo caricamento della dashboard lento (circa 30 s): le spiegazioni LLM delle 10 card vengono generate anche a card chiusa. Da sistemare nel Tier 3.
+- Alcune spiegazioni LLM risultano controintuitive ("211 giorni dall'ultima manutenzione, sopra la norma, che riduce il rischio"): il segno del contributo SHAP non coincide con il giudizio "sopra la norma". Rischio per il test T4, da sistemare nel Tier 3.
 - `test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`: il suo `rec` non include `soglia_confidenza` (in `app.py` è passata correttamente).
 - Dall'analisi baseline: recall Nord/Centro ~0.54 contro Isole 0.95; FPR Sud/Isole ~0.49 (da indagare per il test T5).
 
@@ -98,19 +152,19 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
 Gap di recall = recall massimo del gruppo meno recall del gruppo (allerta sopra 0.15). Gap di calibrazione = probabilità media predetta meno tasso osservato (allerta sopra 0.10).
 
-| Area | n | Guasti reali | Selezione | Recall | FNR | FPR | Precision | Gap recall | Gap calibr. | Allerta |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Centro | 189 | 0.127 | 0.201 | 0.542 | 0.458 | 0.152 | 0.342 | 0.411 | 0.052 | recall |
-| Nord | 300 | 0.093 | 0.170 | 0.679 | 0.321 | 0.118 | 0.373 | 0.274 | 0.056 | recall |
-| Sud | 143 | 0.238 | 0.671 | 0.882 | 0.118 | 0.606 | 0.312 | 0.071 | 0.159 | calibrazione |
-| Isole | 88 | 0.489 | 0.807 | 0.953 | 0.047 | 0.667 | 0.577 | 0.000 | 0.048 | nessuna |
+| Area   | n   | Guasti reali | Selezione | Recall | FNR   | FPR   | Precision | Gap recall | Gap calibr. | Allerta      |
+| ------ | --- | ------------ | --------- | ------ | ----- | ----- | --------- | ---------- | ----------- | ------------ |
+| Centro | 189 | 0.127        | 0.201     | 0.542  | 0.458 | 0.152 | 0.342     | 0.411      | 0.052       | recall       |
+| Nord   | 300 | 0.093        | 0.170     | 0.679  | 0.321 | 0.118 | 0.373     | 0.274      | 0.056       | recall       |
+| Sud    | 143 | 0.238        | 0.671     | 0.882  | 0.118 | 0.606 | 0.312     | 0.071      | 0.159       | calibrazione |
+| Isole  | 88  | 0.489        | 0.807     | 0.953  | 0.047 | 0.667 | 0.577     | 0.000      | 0.048       | nessuna      |
 
-| Tipo asset | n | Guasti reali | Selezione | Recall | FNR | FPR | Precision | Gap recall | Gap calibr. | Allerta |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| trasformatore | 271 | 0.159 | 0.362 | 0.744 | 0.256 | 0.289 | 0.327 | 0.127 | 0.094 | nessuna |
-| cabina_primaria | 135 | 0.156 | 0.348 | 0.762 | 0.238 | 0.272 | 0.340 | 0.109 | 0.098 | nessuna |
-| linea_AT | 171 | 0.199 | 0.345 | 0.824 | 0.176 | 0.226 | 0.475 | 0.047 | 0.051 | nessuna |
-| turbina_eolica | 143 | 0.217 | 0.364 | 0.871 | 0.129 | 0.223 | 0.519 | 0.000 | 0.041 | nessuna |
+| Tipo asset      | n   | Guasti reali | Selezione | Recall | FNR   | FPR   | Precision | Gap recall | Gap calibr. | Allerta |
+| --------------- | --- | ------------ | --------- | ------ | ----- | ----- | --------- | ---------- | ----------- | ------- |
+| trasformatore   | 271 | 0.159        | 0.362     | 0.744  | 0.256 | 0.289 | 0.327     | 0.127      | 0.094       | nessuna |
+| cabina_primaria | 135 | 0.156        | 0.348     | 0.762  | 0.238 | 0.272 | 0.340     | 0.109      | 0.098       | nessuna |
+| linea_AT        | 171 | 0.199        | 0.345     | 0.824  | 0.176 | 0.226 | 0.475     | 0.047      | 0.051       | nessuna |
+| turbina_eolica  | 143 | 0.217        | 0.364     | 0.871  | 0.129 | 0.223 | 0.519     | 0.000      | 0.041       | nessuna |
 
 Cosa dicono i numeri:
 
@@ -141,17 +195,17 @@ Evidenze da un esperimento sul test set (modello con e senza area, soglie per ar
 
 Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da training, dashboard e `test_llm.py`) e in `train_baseline.py` (`SOGLIE` per criticità: standard 0.30, alta e critica 0.20).
 
-| Indicatore | Prima (area nel modello, soglia unica 0.30) | Dopo |
-| --- | --- | --- |
-| AUC | 0.862 | 0.868 |
-| Recall globale | 0.798 | 0.837 |
-| Guasti mancati (FN) | 26 | 21 |
-| FN su utenze critiche / alte | 3 / 6 | 1 / 1 |
-| Ispezioni inutili (FP) | 153 | 183 |
-| Gap di recall tra aree | 0.411 (Centro) | 0.216 (Nord) |
-| Recall Nord / Centro | 0.679 / 0.542 | 0.714 / 0.750 |
-| FPR Isole | 0.667 | 0.622 |
-| Gap calibrazione Sud | 0.159 | 0.177 |
+| Indicatore                   | Prima (area nel modello, soglia unica 0.30) | Dopo          |
+| ---------------------------- | ------------------------------------------- | ------------- |
+| AUC                          | 0.862                                       | 0.868         |
+| Recall globale               | 0.798                                       | 0.837         |
+| Guasti mancati (FN)          | 26                                          | 21            |
+| FN su utenze critiche / alte | 3 / 6                                       | 1 / 1         |
+| Ispezioni inutili (FP)       | 153                                         | 183           |
+| Gap di recall tra aree       | 0.411 (Centro)                              | 0.216 (Nord)  |
+| Recall Nord / Centro         | 0.679 / 0.542                               | 0.714 / 0.750 |
+| FPR Isole                    | 0.667                                       | 0.622         |
+| Gap calibrazione Sud         | 0.159                                       | 0.177         |
 
 - Costo della scelta: 30 ispezioni inutili in più per 5 guasti mancati in meno, di cui 7 su utenze critiche e alte. Coerente con il rapporto 10:1.
 - Restano due allerte aperte: gap di recall Nord 0.216 (sopra 0.15, limite dichiarato del modello) e calibrazione Sud 0.177, che il modello non può correggere perché il problema è nelle etichette. Per questa serve la terza mitigazione (allerta che promuove a HITL), da implementare.
@@ -167,7 +221,7 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 
 ## Da fare
 
-- Tier 2: conferma stop e sblocco con doppia conferma; blocco attivo dei motivi duplicati in `revisiona` (oggi solo misurato da A4).
-- Tier 3: matrice con soglie, drift, override per area, audit filtrabile, spiegazioni in ogni card.
+- Tier 2: completato.
+- Tier 3: matrice con soglie, drift, override per area, audit filtrabile, spiegazioni in ogni card (più caricamento lento e spiegazioni controintuitive).
 - Tier 1: completato.
 - Tier 4: model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.

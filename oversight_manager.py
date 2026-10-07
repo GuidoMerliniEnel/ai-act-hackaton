@@ -37,6 +37,7 @@ class StatoDecisione(str, Enum):
     ESCALATION = "ESCALATION"
     AUTO_ESEGUITA = "AUTO_ESEGUITA"   # ammessa SOLO per HOTL
     BLOCCATA_STOP = "BLOCCATA_STOP"   # bloccata da emergency stop
+    RISOTTOMESSA = "RISOTTOMESSA"     # bloccata e poi rientrata nel flusso come nuova decisione
 
 
 AZIONI = ["nessuna_azione", "ispezione_routine", "programma_manutenzione",
@@ -123,12 +124,13 @@ class OversightManager:
     # ------------------------------------------------------------------
     def sottometti(self, r: Raccomandazione):
         """Instrada la raccomandazione e la esegue o la mette in coda."""
+        self.route(r)
         if self._stop_applicabile(r):
             r.stato = StatoDecisione.BLOCCATA_STOP
+            self.coda.append(r)   # visibile in coda: va risottomessa a mano dopo lo sblocco
             self.audit.log("SISTEMA", "blocco_emergency_stop", r)
             return r
 
-        self.route(r)
         if r.livello == LivelloSupervisione.HOTL:
             r.stato = StatoDecisione.AUTO_ESEGUITA
             self._esegui(r)
@@ -151,6 +153,10 @@ class OversightManager:
             raise ValueError(f"Decisione {decision_id} gia' chiusa: {r.stato}")
         if self._stop_applicabile(r):  # DECISIONE: sotto stop nessuna revisione, altrimenti T3 e' aggirabile
             raise ValueError(f"Decisione {decision_id} nell'ambito di uno stop attivo: non revisionabile.")
+        # DECISIONE: motivazione fotocopia di una gia' usata = giudizio non espresso (test T2, KPI A4)
+        if self._normalizza(motivazione) in {self._normalizza(x.motivazione) for x in self.coda
+                                             if x.motivazione and x.id != decision_id}:
+            raise ValueError("Motivazione identica a una gia' usata: descrivete il caso specifico.")
         r.stato, r.revisore, r.motivazione = esito, revisore, motivazione
         if esito != StatoDecisione.ESCALATION:
             r.chiusa_il = datetime.now().isoformat()
@@ -180,11 +186,37 @@ class OversightManager:
                        extra={"motivazione": motivazione, "decisioni_bloccate": bloccate})
         return bloccate
 
-    def disattiva_stop(self, ambito: str, operatore: str, motivazione: str):
+    def disattiva_stop(self, ambito: str, operatore: str, motivazione: str,
+                       confermato_da: str = ""):
+        """DECISIONE: riattivazione a quattro occhi; le decisioni bloccate restano bloccate."""
         self._valida_motivazione(motivazione)
+        if ambito not in self.stop_attivi:
+            raise ValueError(f"Nessuno stop attivo per l'ambito {ambito}.")
+        if not confermato_da.strip() or confermato_da.strip() == operatore.strip():
+            raise ValueError("Serve la conferma di un secondo operatore, diverso da chi disattiva.")
         self.stop_attivi.discard(ambito)
-        self.audit.log(operatore, f"emergency_stop_OFF:{ambito}",
-                       None, extra={"motivazione": motivazione})
+        self.audit.log(operatore, f"emergency_stop_OFF:{ambito}", None,
+                       extra={"motivazione": motivazione, "confermato_da": confermato_da.strip()})
+
+    def risottometti(self, decision_id: str, operatore: str, motivazione: str) -> Raccomandazione:
+        """Una decisione bloccata rientra nel flusso come nuova decisione, rivalutata da zero."""
+        self._valida_motivazione(motivazione)
+        vecchia = self._trova(decision_id)
+        if vecchia.stato != StatoDecisione.BLOCCATA_STOP:
+            raise ValueError(f"Decisione {decision_id} non bloccata: {vecchia.stato}")
+        if self._stop_applicabile(vecchia):
+            raise ValueError(f"Decisione {decision_id} ancora nell'ambito di uno stop attivo.")
+        nuova = Raccomandazione(vecchia.asset_id, vecchia.tipo_asset, vecchia.area_geografica,
+                                vecchia.criticita_utenza, vecchia.prob_guasto, vecchia.confidenza,
+                                vecchia.azione_proposta, vecchia.spiegazione)
+        vecchia.stato = StatoDecisione.RISOTTOMESSA
+        self.audit.log(operatore, "risottomissione", vecchia,
+                       extra={"motivazione": motivazione, "nuovo_id": nuova.id})
+        return self.sottometti(nuova)
+
+    @staticmethod
+    def _normalizza(testo: Optional[str]) -> str:
+        return " ".join((testo or "").lower().split())
 
     @staticmethod
     def _valida_motivazione(motivazione: str):

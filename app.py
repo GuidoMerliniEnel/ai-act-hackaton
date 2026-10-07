@@ -71,17 +71,38 @@ ambito = st.sidebar.selectbox("Ambito", ["GLOBALE", "area:Sud", "area:Nord",
                                          "tipo:cabina_primaria", "tipo:turbina_eolica",
                                          "area:Sud+tipo:linea_AT"])
 mot_stop = st.sidebar.text_input("Motivazione stop (min 15 caratteri)")
-c1, c2 = st.sidebar.columns(2)
-try:
-    if c1.button("ATTIVA", type="primary"):
-        n_bloccate = len(om.attiva_stop(ambito, operatore, mot_stop))
-        st.sidebar.success(f"Stop {ambito} attivo: {n_bloccate} decisioni in coda bloccate.")
-    if c2.button("Disattiva"):
-        om.disattiva_stop(ambito, operatore, mot_stop)
-except ValueError as e:
-    st.sidebar.error(str(e))
+# DECISIONE: attivazione = 1 click + conferma (test T3); disattivazione = secondo operatore diverso
+if st.sidebar.button("ATTIVA STOP", type="primary", width="stretch"):
+    st.session_state["stop_da_confermare"] = ambito
+if st.session_state.get("stop_da_confermare") == ambito:
+    st.sidebar.warning(f"Confermi lo stop su **{ambito}**? Le decisioni in coda nell'ambito verranno bloccate.")
+    k1, k2 = st.sidebar.columns(2)
+    if k1.button("Conferma", type="primary"):
+        try:
+            n_bloccate = len(om.attiva_stop(ambito, operatore, mot_stop))
+            st.session_state.pop("stop_da_confermare")
+            st.session_state["esito_stop"] = f"Stop {ambito} attivo: {n_bloccate} decisioni in coda bloccate."
+            st.rerun()
+        except ValueError as e:
+            st.sidebar.error(str(e))
+    if k2.button("Annulla"):
+        st.session_state.pop("stop_da_confermare")
+        st.rerun()
+if "esito_stop" in st.session_state:
+    st.sidebar.success(st.session_state.pop("esito_stop"))
 if om.stop_attivi:
     st.sidebar.error(f"STOP ATTIVI: {', '.join(sorted(om.stop_attivi))}")
+    with st.sidebar.expander("Disattiva uno stop (doppia conferma)"):
+        amb_off = st.selectbox("Stop da disattivare", sorted(om.stop_attivi))
+        mot_off = st.text_input("Motivazione riattivazione (min 15 caratteri)")
+        secondo = st.text_input("ID secondo operatore che conferma")
+        presa_visione = st.checkbox("Ho verificato che la causa dello stop e' risolta")
+        if st.button("Disattiva", disabled=not presa_visione):
+            try:
+                om.disattiva_stop(amb_off, operatore, mot_off, confermato_da=secondo)
+                st.rerun()
+            except ValueError as e:
+                st.error(str(e))
 
 om.controlla_sla()
 
@@ -148,6 +169,23 @@ with tab_coda:
             except ValueError as e:
                 st.error(str(e))
 
+    bloccate = [r for r in om.coda if r.stato == StatoDecisione.BLOCCATA_STOP]
+    if bloccate:
+        st.subheader(f"Bloccate da emergency stop ({len(bloccate)})")
+        st.caption("Restano bloccate anche dopo lo sblocco: rientrano solo se risottomesse, "
+                   "e vengono rivalutate da zero.")
+        for r in bloccate:
+            c_info, c_mot, c_btn = st.columns([3, 3, 1])
+            c_info.write(f"{r.asset_id} · {r.tipo_asset} · {r.area_geografica} · P={r.prob_guasto}")
+            mot_r = c_mot.text_input("Motivazione", key=f"rs{r.id}", label_visibility="collapsed",
+                                     placeholder="Motivazione risottomissione")
+            if c_btn.button("Risottometti", key=f"rsb{r.id}"):
+                try:
+                    om.risottometti(r.id, operatore, mot_r)
+                    st.rerun()
+                except ValueError as e:
+                    st.error(str(e))
+
 # ----------------------------------------------------------------------
 with tab_matrice:
     st.subheader("Dove decide l'AI e dove serve l'umano")
@@ -162,12 +200,12 @@ with tab_bias:
     bd = BiasDetector()
     valut = pred.rename(columns={})
     m = bd.metriche_per_gruppo(valut, "area_geografica")
-    st.dataframe(m, use_container_width=True)
+    st.dataframe(m, width="stretch")
     for a in bd.allerte(m, "area_geografica"):
         st.warning(a)
     st.subheader("Calibrazione per area")
     cal = bd.calibrazione_per_gruppo(valut, "area_geografica")
-    st.dataframe(cal, use_container_width=True)
+    st.dataframe(cal, width="stretch")
     for a in bd.allerte_calibrazione(cal, "area_geografica"):
         st.error(a)
     if om.aree_promosse:
