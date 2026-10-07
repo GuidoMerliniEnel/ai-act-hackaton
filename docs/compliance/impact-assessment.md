@@ -31,7 +31,7 @@
 | R10  | Recall-gap alert: no auto-execution above p = 0.10 in the area; recall CI and intersectional tables in the dashboard | Real failures auto-executed 6 → 2; +84 HITL decisions on 720 |
 
 **Cost of the mitigation package:** 30 more unnecessary inspections
-(152 → 182) for 5 fewer missed failures (26 → 21), consistent with the
+(152 → 183) for 5 fewer missed failures (26 → 21), consistent with the
 declared 10:1 cost ratio.
 
 ## What we have NOT solved

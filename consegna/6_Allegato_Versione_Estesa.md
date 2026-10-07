@@ -30,7 +30,7 @@ Sistema di manutenzione predittiva con supervisione umana per asset critici dell
 
 | Globale | AUC   | Recall | Precision | Accuracy | Guasti mancati | Ispezioni inutili |
 | ------- | ----- | ------ | --------- | -------- | -------------- | ----------------- |
-| Valore  | 0.868 | 0.837  | 0.372     | 0.718    | 21             | 182               |
+| Valore  | 0.868 | 0.837  | 0.372     | 0.718    | 21             | 183               |
 
 | Area   | Recall | FPR   | Gap calibrazione    |
 | ------ | ------ | ----- | ------------------- |
@@ -70,7 +70,7 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 - La sotto-segnalazione al Sud è un'ipotesi; il modello non la può correggere (il problema è nelle etichette). È gestita dalla supervisione: le decisioni del Sud non vengono mai auto-eseguite (D-19).
 - Il drift è simulato: il dataset non ha date (D-26).
 - Il rapporto di costo 10:1 è un'ipotesi del gruppo, non un dato aziendale.
-- 182 ispezioni inutili su 720: è il prezzo di un recall più alto.
+- 183 ispezioni inutili su 720: è il prezzo di un recall più alto.
 - Dipendenze fissate a versioni esatte (D-38): `train_baseline.py` produce gli stessi numeri su ogni macchina con Python da 3.11 (ambiente del kit) a 3.14 (D-46).
 
 ## Relazione d'impatto · EnerGuard
@@ -94,7 +94,7 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 1. **La sotto-segnalazione al Sud resta un'ipotesi.** I dati non distinguono tra guasti non registrati e processi di registrazione diversi. Serve una verifica sul campo con chi gestisce le segnalazioni nel Sud.
 2. **Il modello non vede i guasti senza segnali.** Al Nord e al Centro circa un guasto su quattro arriva senza anomalie nei sensori. Nessuna soglia lo risolve senza moltiplicare le ispezioni.
 3. **La correzione del bias è affidata all'umano, non al modello.** Se gli operatori del Sud approvano tutto, la promozione a HITL serve a poco: per questo monitoriamo l'override per area (D-28), ma non abbiamo dati reali per tararlo.
-4. **Più ispezioni inutili.** 182 falsi positivi su 720 (30 in più rispetto alla soglia unica): costo operativo accettato, da rivedere con dati di costo reali.
+4. **Più ispezioni inutili.** 183 falsi positivi su 720 (30 in più rispetto alla soglia unica): costo operativo accettato, da rivedere con dati di costo reali.
 5. **Drift solo simulato** e **SLA non provato sotto carico reale**.
 6. **La confidenza scelta è povera**: replica la probabilità. Una misura di accordo tra gli alberi sarebbe più informativa.
 7. **Dipendenza da un fornitore LLM esterno** per i dettagli: mitigata dal fallback, ma il testo può variare tra due chiamate.

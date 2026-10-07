@@ -10,7 +10,7 @@
 
 | Globale | AUC   | Recall | Precision | Guasti mancati | Ispezioni inutili |
 | ------- | ----- | ------ | --------- | -------------- | ----------------- |
-| Test    | 0.868 | 0.837  | 0.372     | 21             | 182               |
+| Test    | 0.868 | 0.837  | 0.372     | 21             | 183               |
 
 | Area   | Recall [IC 95%]    | FPR   | Gap calibrazione    |
 | ------ | ------------------ | ----- | ------------------- |

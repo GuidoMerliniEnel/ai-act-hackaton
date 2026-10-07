@@ -96,7 +96,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 >
 > - la sotto-segnalazione è un'**ipotesi** da verificare sul campo;
 > - al Nord e al Centro un guasto su quattro arriva **senza segnali nei sensori**;
-> - **182 ispezioni inutili** su 720, il prezzo di un recall più alto;
+> - **183 ispezioni inutili** su 720, il prezzo di un recall più alto;
 > - con 24-43 guasti per area le differenze sono **segnali, non prove**;
 > - il **drift è simulato** e due guasti nelle Isole restano automatici.
 >

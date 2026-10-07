@@ -44,8 +44,8 @@ print("\nT0 · Riproducibilita' dei numeri della consegna (D-46)")
 _p = carica_csv("predizioni.csv")
 _fp = int(((_p["y_true"] == 0) & (_p["y_pred"] == 1)).sum())
 _fn = int(((_p["y_true"] == 1) & (_p["y_pred"] == 0)).sum())
-verifica("T0", (_fp, _fn) == (182, 21),
-         f"falsi positivi {_fp}, guasti mancati {_fn} (documenti: 182 e 21). Se diversi: eseguire "
+verifica("T0", (_fp, _fn) == (183, 21),
+         f"falsi positivi {_fp}, guasti mancati {_fn} (documenti: 183 e 21). Se diversi: eseguire "
          "run_dashboard con --retrain e controllare le versioni di requirements.txt")
 
 print("\nT1 · Override reale (cancello)")

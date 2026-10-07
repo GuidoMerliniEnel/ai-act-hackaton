@@ -13,7 +13,7 @@
 
 1. La **sotto-segnalazione al Sud** resta un'ipotesi: serve una verifica sul campo.
 2. Al Nord e al Centro circa un guasto su quattro arriva **senza segnali nei sensori**: la supervisione aggiunta (D-43) non aumenta il recall.
-3. **Più ispezioni inutili** (182 su 720) e **83 revisioni umane in più**: costi accettati, da tarare con dati reali.
+3. **Più ispezioni inutili** (183 su 720) e **83 revisioni umane in più**: costi accettati, da tarare con dati reali.
 4. Le differenze tra aree poggiano su **24-43 guasti per area**: sono segnali, non prove.
 5. **Drift simulato**, costo 10:1 ipotizzato, revisori non differenziati per competenza (D-42).
 
