@@ -30,6 +30,10 @@ def bootstrap():
     om = OversightManager(audit)
     spiegatore = crea_spiegatore(audit)   # LLM se .env e' configurato, altrimenti template
     pred = carica_csv("predizioni.csv")
+    bd = BiasDetector()
+    cal = bd.calibrazione_per_gruppo(pred, "area_geografica")
+    om.imposta_promozioni(bd.gruppi_da_promuovere(cal, "area_geografica"),
+                          "gap di calibrazione oltre soglia (sospetto label bias)")
     # DECISIONE: 40 positive + 8 a basso rischio, altrimenti il ramo HOTL non viene mai esercitato
     campione = pd.concat([pred[pred["y_pred"] == 1].head(40),
                           pred[pred["proba"] < 0.2].head(8)])
@@ -161,8 +165,15 @@ with tab_bias:
     st.dataframe(m, use_container_width=True)
     for a in bd.allerte(m, "area_geografica"):
         st.warning(a)
+    st.subheader("Calibrazione per area")
+    cal = bd.calibrazione_per_gruppo(valut, "area_geografica")
+    st.dataframe(cal, use_container_width=True)
+    for a in bd.allerte_calibrazione(cal, "area_geografica"):
+        st.error(a)
+    if om.aree_promosse:
+        st.info(f"Aree promosse a HITL (nessuna auto-esecuzione): {', '.join(sorted(om.aree_promosse))}")
     st.caption("TODO: aggiungere trend temporale (drift), tasso di override "
-               "umano per area, calibrazione per gruppo.")
+               "umano per area.")
 
 # ----------------------------------------------------------------------
 with tab_audit:

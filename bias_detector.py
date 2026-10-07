@@ -6,14 +6,12 @@ Un modello "accurato in media" puo' nascondere disparita' gravi:
 questo modulo serve a renderle visibili nella dashboard.
 
 TODO per il team:
-  1. Scegliere e giustificare le metriche di fairness rilevanti per QUESTO
-     caso d'uso. Suggerimento: qui il danno peggiore e' il falso negativo
-     (guasto non previsto su un asset critico), quindi il gap di recall /
-     FNR tra aree pesa piu' della demographic parity.
-  2. Definire soglie di allerta e collegarle a un alert visivo in dashboard.
-  3. Indagare le anomalie: se due aree hanno profili di rischio simili ma
-     tassi di guasto registrati molto diversi, cosa puo' significare per
-     la qualita' delle label storiche? (vedi Art. 10, data governance)
+  1. DECISIONE: metrica principale = gap di recall/FNR (il danno peggiore e' il guasto non previsto);
+     la demographic parity resta solo come segnale di variabile proxy.
+  2. DECISIONE: soglie 0.15 sul gap di recall e 0.10 sul gap di calibrazione; la seconda
+     promuove a HITL le decisioni HOTL dell'area (OversightManager.imposta_promozioni).
+  3. DECISIONE: Sud e Isole hanno profili quasi identici ma guasti registrati 0.24 contro 0.45:
+     ipotesi di sotto-segnalazione al Sud, confermata dal solo gap di calibrazione del Sud.
 """
 
 import pandas as pd
@@ -23,9 +21,11 @@ from sklearn.metrics import (accuracy_score, precision_score, recall_score,
 
 class BiasDetector:
     def __init__(self, soglia_gap_recall: float = 0.15,
-                 soglia_gap_selezione: float = 0.20):
+                 soglia_gap_selezione: float = 0.20,
+                 soglia_gap_calibrazione: float = 0.10):
         self.soglia_gap_recall = soglia_gap_recall
         self.soglia_gap_selezione = soglia_gap_selezione
+        self.soglia_gap_calibrazione = soglia_gap_calibrazione
 
     def metriche_per_gruppo(self, df: pd.DataFrame, col_gruppo: str,
                             col_y: str = "y_true",
@@ -73,6 +73,23 @@ class BiasDetector:
                 f"storico nei dati (variabile proxy).")
         return out
 
-    # TODO avanzato: equalized odds difference, calibrazione per gruppo
-    # (probabilita' media predetta vs tasso osservato: se divergono in un solo
-    # gruppo, sospettare label bias nei dati storici).
+    def calibrazione_per_gruppo(self, df: pd.DataFrame, col_gruppo: str,
+                                col_y: str = "y_true",
+                                col_proba: str = "proba") -> pd.DataFrame:
+        """Probabilita' media predetta contro tasso osservato: un gap isolato indica label bias."""
+        c = df.groupby(col_gruppo).agg(proba_media=(col_proba, "mean"),
+                                       tasso_osservato=(col_y, "mean"))
+        c["gap_calibrazione"] = c["proba_media"] - c["tasso_osservato"]
+        c["allerta"] = c["gap_calibrazione"].abs() > self.soglia_gap_calibrazione
+        return c.round(3).reset_index()
+
+    def gruppi_da_promuovere(self, calibrazione: pd.DataFrame, col_gruppo: str) -> list[str]:
+        return calibrazione.loc[calibrazione["allerta"], col_gruppo].tolist()
+
+    def allerte_calibrazione(self, calibrazione: pd.DataFrame, col_gruppo: str) -> list[str]:
+        return [
+            f"GAP CALIBRAZIONE: {col_gruppo}='{r[col_gruppo]}' ha probabilita' media "
+            f"{r['proba_media']} contro {r['tasso_osservato']} osservato (gap "
+            f"{r['gap_calibrazione']} > soglia {self.soglia_gap_calibrazione}). "
+            f"Sospetto label bias: decisioni HOTL dell'area promosse a HITL."
+            for _, r in calibrazione[calibrazione["allerta"]].iterrows()]

@@ -157,9 +157,17 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 - Restano due allerte aperte: gap di recall Nord 0.216 (sopra 0.15, limite dichiarato del modello) e calibrazione Sud 0.177, che il modello non può correggere perché il problema è nelle etichette. Per questa serve la terza mitigazione (allerta che promuove a HITL), da implementare.
 - Nuova allerta per criticità: le utenze standard hanno recall 0.765 contro 0.971 delle alte (gap 0.206). È voluta: è l'effetto della soglia più bassa sulle utenze più delicate.
 
+### Mitigazione: allerta di calibrazione con promozione automatica a HITL
+
+- `bias_detector.py`: nuovi `calibrazione_per_gruppo`, `gruppi_da_promuovere`, `allerte_calibrazione` (soglia 0.10). I TODO del modulo sono sostituiti dalle decisioni.
+- `oversight_manager.py`: `aree_promosse` e `imposta_promozioni` (la modifica viene registrata nel log). In `route()` e nella matrice dichiarata (`livello_dichiarato`) un'area promossa non può andare in HOTL.
+- `app.py`: all'avvio la calibrazione per area decide le promozioni; la scheda "Bias & drift" mostra la tabella di calibrazione, l'allerta e le aree promosse.
+- Verifica sui dati reali: solo il Sud supera la soglia (0.415 predetto contro 0.238 osservato, gap 0.177) e viene promosso. Stessa decisione a basso rischio: al Nord HOTL auto-eseguita, al Sud HITL in attesa. A1 = 0, A6 = 100%, catena di hash integra.
+- È l'alert automatico che modifica il routing richiesto dal Tier 3 (livello 4 della rubrica: il sistema declassa sé stesso).
+
 ## Da fare
 
 - Tier 2: conferma stop e sblocco con doppia conferma; blocco attivo dei motivi duplicati in `revisiona` (oggi solo misurato da A4).
-- Tier 3: matrice con soglie, bias/calibrazione/override per area, drift, alert che promuove HOTL a HITL, audit filtrabile, spiegazioni in ogni card.
-- Tier 1: implementazione del pacchetto di mitigazione (decisione 5) e misura prima/dopo.
+- Tier 3: matrice con soglie, drift, override per area, audit filtrabile, spiegazioni in ogni card.
+- Tier 1: completato.
 - Tier 4: model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.

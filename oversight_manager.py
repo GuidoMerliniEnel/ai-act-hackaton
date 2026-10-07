@@ -84,6 +84,15 @@ class OversightManager:
         self.coda: list[Raccomandazione] = []
         self.storico_hotl: list[Raccomandazione] = []
         self.stop_attivi: set[str] = set()   # es. {"area:Sud", "tipo:linea_AT", "GLOBALE"}
+        self.aree_promosse: set[str] = set()
+
+    def imposta_promozioni(self, aree: list[str], motivo: str):
+        """Aree in cui un'allerta (es. calibrazione) vieta l'auto-esecuzione HOTL."""
+        nuove = set(aree)
+        if nuove != self.aree_promosse:
+            self.audit.log("SISTEMA", "promozione_HOTL_a_HITL", None,
+                           extra={"aree": sorted(nuove), "motivo": motivo})
+        self.aree_promosse = nuove
 
     # ------------------------------------------------------------------
     # ROUTING - il cuore dell'esercizio
@@ -102,6 +111,8 @@ class OversightManager:
             livello = LivelloSupervisione.HIC
         elif r.prob_guasto >= self.soglia_rischio or r.confidenza < self.soglia_conf:
             livello = LivelloSupervisione.HITL
+        elif r.area_geografica in self.aree_promosse:
+            livello = LivelloSupervisione.HITL   # DECISIONE: area con allerta di bias, niente auto-esecuzione
         elif r.azione_proposta in ("nessuna_azione", "ispezione_routine"):
             livello = LivelloSupervisione.HOTL
         else:
@@ -277,6 +288,8 @@ class OversightManager:
         if r.azione_proposta == "riduci_carico" and r.criticita_utenza == "alta":
             return LivelloSupervisione.HIC
         leggera = r.azione_proposta in ("nessuna_azione", "ispezione_routine")
+        if r.area_geografica in self.aree_promosse:
+            return LivelloSupervisione.HITL
         if r.prob_guasto < self.soglia_rischio and r.confidenza >= self.soglia_conf and leggera:
             return LivelloSupervisione.HOTL
         return LivelloSupervisione.HITL
