@@ -67,7 +67,7 @@ flowchart TD
     mean p ≤ 0.20. HOTL therefore applies only to standard or high
     users with failure probability ≤ 0.20, outside alerted areas, and in
     North and Centre only below 0.10. On the test set the split is 60 HIC,
-    422 HITL and 238 HOTL. Rule 5 moves 83 decisions from HOTL to HITL and
+    423 HITL and 237 HOTL. Rule 5 moves 84 decisions from HOTL to HITL and
     cuts real failures auto-executed without review from 6 to 2 (both in
     the Islands).
 

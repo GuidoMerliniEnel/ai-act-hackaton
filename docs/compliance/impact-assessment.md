@@ -5,7 +5,7 @@
 | ID | Risk                                                                                   | Severity | Evidence                                                       |
 | -- | -------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------- |
 | R1 | Missed failure on a critical user (hospital, infrastructure)                          | Critical | 3 FN on critical and 6 on high users with a single 0.30 threshold |
-| R2 | Historical label bias: failures under-reported in the South                           | High     | South/Islands same profile, 0.24 vs 0.45 recorded; South calibration gap 0.178 |
+| R2 | Historical label bias: failures under-reported in the South                           | High     | South/Islands same profile, 0.24 vs 0.45 recorded; South calibration gap 0.177 |
 | R3 | Area acting as a proxy, causing over-selection in South and Islands                   | Medium   | Selection gap 0.64 between areas; FPR Islands 0.67 with area in the model |
 | R4 | Lower recall in North and Centre                                                      | Medium   | Recall 0.54 (Centre) with area in the model                    |
 | R5 | Automation bias: operators approve without reading                                     | High     | General risk of approval queues                                |
@@ -28,7 +28,7 @@
 | R7   | SHA-256 hash chain, integrity always visible                                               | Edit at record 403 detected (test T6)               |
 | R8   | Guardrails, template fallback, declared source                                             | 10/10 LLM explanations, 0 fallbacks in the demo     |
 | R9   | Drift alert: 2 consecutive weeks below reference − 0.10 disables HOTL everywhere           | Triggers in simulation; not on current data         |
-| R10  | Recall-gap alert: no auto-execution above p = 0.10 in the area; recall CI and intersectional tables in the dashboard | Real failures auto-executed 6 → 2; +83 HITL decisions on 720 |
+| R10  | Recall-gap alert: no auto-execution above p = 0.10 in the area; recall CI and intersectional tables in the dashboard | Real failures auto-executed 6 → 2; +84 HITL decisions on 720 |
 
 **Cost of the mitigation package:** 30 more unnecessary inspections
 (152 → 182) for 5 fewer missed failures (26 → 21), consistent with the
@@ -69,5 +69,5 @@ declared 10:1 cost ratio.
     13. **Per-area differences are not statistically solid**: 24–43
         failures per area, overlapping confidence intervals.
     14. **Two real failures in the Islands are still auto-executed**
-        (risk 0.14–0.17), an area with no alert. D-43 also adds 83 HITL
+        (risk 0.14–0.17), an area with no alert. D-43 also adds 84 HITL
         decisions on 720: KPI A5 must be watched.

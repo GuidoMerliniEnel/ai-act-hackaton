@@ -56,7 +56,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > Ora un incidente: letture anomale sulle linee AT del Sud. Fermiamo solo quelle. Un click più una conferma.
 >
-> Le **7 decisioni** sulle linee AT del Sud sono bloccate, anche quelle già in coda. Il resto continua: la turbina del Sud e la linea del Nord sono ancora lì. Il banner rosso in alto rende lo stop impossibile da ignorare.
+> Le **8 decisioni** sulle linee AT del Sud sono bloccate, anche quelle già in coda. Il resto continua: la turbina del Sud e la linea del Nord sono ancora lì. Il banner rosso in alto rende lo stop impossibile da ignorare.
 >
 > Togliere uno stop è più rischioso che metterlo: serve un **secondo operatore**, diverso dal primo. E le decisioni bloccate non ripartono da sole: vanno risottomesse una per una.
 
@@ -76,7 +76,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > La parte più importante. Sud e Isole hanno asset con profili quasi identici: stessa età, stessa manutenzione, stessi sensori. Ma i guasti registrati sono **0.24 contro 0.45**.
 >
-> La nostra ipotesi è che al Sud i guasti siano **sotto-segnalati**. Il modello lo conferma: è l'unica area dove prevede molto più di quanto viene registrato, con un gap di calibrazione di 0.178.
+> La nostra ipotesi è che al Sud i guasti siano **sotto-segnalati**. Il modello lo conferma: è l'unica area dove prevede molto più di quanto viene registrato, con un gap di calibrazione di 0.177.
 >
 > Un modello non può correggere etichette sbagliate. Quindi abbiamo fatto tre cose:
 >

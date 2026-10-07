@@ -21,7 +21,7 @@ Le regole si applicano nell'ordine: vale la prima che scatta.
 
 - **0.60 sul rischio** e **0.80 sulla confidenza**: default del kit, mantenuti. Con la confidenza = $\max(p, 1-p)$ una decisione va in HOTL solo se $p \leq 0.20$: l'AI agisce da sola solo quando è quasi certa che non ci sia un guasto.
 - **Soglie di intervento per criticità** (0.20 alte/critiche, 0.30 standard): vedi model card (D-01, D-02).
-- Sul test set: 60 HIC, 422 HITL, 238 HOTL. La regola 6 sposta 83 decisioni di Nord e Centro da HOTL a HITL e porta da 6 a 2 i guasti reali che sarebbero stati auto-eseguiti senza revisione (i 2 rimasti sono delle Isole).
+- Sul test set: 60 HIC, 423 HITL, 237 HOTL. La regola 6 sposta 84 decisioni di Nord e Centro da HOTL a HITL e porta da 6 a 2 i guasti reali che sarebbero stati auto-eseguiti senza revisione (i 2 rimasti sono delle Isole).
 
 ## Regole del flusso umano
 

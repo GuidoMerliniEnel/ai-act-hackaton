@@ -46,10 +46,10 @@ data without re-validation.
 | ---------------------------- | ----------------------- |
 | AUC                          | 0.868                   |
 | Recall                       | 0.837                   |
-| Precision                    | 0.372                   |
-| Accuracy                     | 0.718                   |
+| Precision                    | 0.371                   |
+| Accuracy                     | 0.717                   |
 | Missed failures (FN)         | 21 (1 critical, 1 high) |
-| Unnecessary inspections (FP) | 182                     |
+| Unnecessary inspections (FP) | 183                     |
 
 ## Metrics by subgroup
 
@@ -57,9 +57,9 @@ data without re-validation.
 
 | Area   | n   | Real failures | Selection | Recall | FPR   | Calibration gap |
 | ------ | --- | ------------- | --------- | ------ | ----- | --------------- |
-| Nord   | 300 | 0.093         | 0.197     | 0.714  | 0.143 | 0.062           |
+| Nord   | 300 | 0.093         | 0.200     | 0.714  | 0.147 | 0.062           |
 | Centro | 189 | 0.127         | 0.307     | 0.750  | 0.242 | 0.064           |
-| Sud    | 143 | 0.238         | 0.734     | 0.882  | 0.688 | **0.178**       |
+| Sud    | 143 | 0.238         | 0.734     | 0.882  | 0.688 | **0.177**       |
 | Isole  | 88  | 0.489         | 0.773     | 0.930  | 0.622 | −0.033          |
 
 Calibration gap = mean predicted probability − observed failure rate.
@@ -110,7 +110,7 @@ badly at the intersection.
 | Nord · standard             | 200 | 0.68   | 0.12 | +0.06           |
 | Sud · standard              | 86  | 0.76   | 0.67 | **+0.21**       |
 | Sud · trasformatore         | 48  | 0.88   | 0.70 | **+0.25**       |
-| Sud · critica               | 16  | 1.00   | 0.67 | +0.03           |
+| Sud · critica               | 16  | 1.00   | 0.67 | +0.02           |
 
 - Standard users in the North and Centre are the worst-served group.
 - The South label bias is concentrated on transformers and standard users;
@@ -118,7 +118,7 @@ badly at the intersection.
 
 ### Residual proxy
 
-Without `area_geografica`, the other features still predict the area 58%
+Without `area_geografica`, the other features still predict the area 57%
 of the time (38% by chance), mainly through days since last maintenance
 and age. They barely separate the South from the Islands (67% vs 65%).
 
@@ -144,7 +144,7 @@ review. With D-43 two remain, both in the Islands.
       (0.65–0.68): the 0.30 threshold and the model limit add up.
     - **Per-area differences are not statistically solid** (24–43
       failures per area, overlapping 95% intervals).
-    - **South calibration gap (0.178).** Probably caused by under-reported
+    - **South calibration gap (0.177).** Probably caused by under-reported
       failures. It cannot be fixed in the model because the bias is in the
       labels; it is managed by oversight, and South decisions are promoted
       to HITL ([D-19](../decisions/index.md#d-19)).

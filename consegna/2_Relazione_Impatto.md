@@ -19,7 +19,7 @@
 1. **La sotto-segnalazione al Sud resta un'ipotesi.** I dati non distinguono tra guasti non registrati e processi di registrazione diversi. Serve una verifica sul campo con chi gestisce le segnalazioni nel Sud.
 2. **Il modello non vede i guasti senza segnali.** Al Nord e al Centro circa un guasto su quattro arriva senza anomalie nei sensori. Nessuna soglia lo risolve senza moltiplicare le ispezioni.
 3. **La correzione del bias è affidata all'umano, non al modello.** Se gli operatori del Sud approvano tutto, la promozione a HITL serve a poco: per questo monitoriamo l'override per area (D-28), ma non abbiamo dati reali per tararlo.
-4. **Più ispezioni inutili.** 182 falsi positivi su 720 (30 in più rispetto alla soglia unica): costo operativo accettato, da rivedere con dati di costo reali.
+4. **Più ispezioni inutili.** 183 falsi positivi su 720 (30 in più rispetto alla soglia unica): costo operativo accettato, da rivedere con dati di costo reali.
 5. **Drift solo simulato** e **SLA non provato sotto carico reale**.
 6. **La confidenza scelta è povera**: replica la probabilità. Una misura di accordo tra gli alberi sarebbe più informativa.
 7. **Dipendenza da un fornitore LLM esterno** per i dettagli: mitigata dal fallback, ma il testo può variare tra due chiamate.
@@ -29,4 +29,4 @@
 11. **Le utenze standard di Nord e Centro sono servite peggio** (recall 0.65-0.68): somma della soglia più alta per le utenze standard e dei guasti senza segnali. D-43 aggiunge supervisione, non recall.
 12. **L'area entra ancora nel modello per via indiretta**: età e giorni dall'ultima manutenzione la indovinano nel 58% dei casi. Non la togliamo: sono anche fattori di rischio reali.
 13. **Le differenze tra aree non sono statisticamente solide**: 24-43 guasti per area, intervalli di confidenza sovrapposti. Le allerte vanno lette come segnali.
-14. **Restano 2 guasti reali auto-eseguiti nelle Isole** (rischio 0.14-0.17), area senza allerta. Più carico umano: D-43 aggiunge 83 decisioni HITL su 720 (KPI A5 da sorvegliare).
+14. **Restano 2 guasti reali auto-eseguiti nelle Isole** (rischio 0.14-0.17), area senza allerta. Più carico umano: D-43 aggiunge 84 decisioni HITL su 720 (KPI A5 da sorvegliare).

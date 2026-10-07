@@ -51,5 +51,5 @@ zensical build --clean    # static HTML in site/
 ```
 
 !!! note "Generated files"
-    `modello.joblib`, `predizioni.csv`, `audit_trail.jsonl`, `.env` and
-    `site/` are git-ignored.
+`modello.joblib`, `predizioni.csv`, `audit_trail.jsonl`, `.env` and
+`site/` are git-ignored.

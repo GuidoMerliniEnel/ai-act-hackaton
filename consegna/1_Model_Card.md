@@ -26,13 +26,13 @@ Sistema di manutenzione predittiva con supervisione umana per asset critici dell
 
 | Globale | AUC   | Recall | Precision | Accuracy | Guasti mancati | Ispezioni inutili |
 | ------- | ----- | ------ | --------- | -------- | -------------- | ----------------- |
-| Valore  | 0.868 | 0.837  | 0.372     | 0.718    | 21             | 182               |
+| Valore  | 0.868 | 0.837  | 0.371     | 0.717    | 21             | 183               |
 
 | Area   | Recall | FPR   | Gap calibrazione    |
 | ------ | ------ | ----- | ------------------- |
-| Nord   | 0.714  | 0.143 | 0.062               |
+| Nord   | 0.714  | 0.147 | 0.062               |
 | Centro | 0.750  | 0.242 | 0.064               |
-| Sud    | 0.882  | 0.688 | **0.178** (allerta) |
+| Sud    | 0.882  | 0.688 | **0.177** (allerta) |
 | Isole  | 0.930  | 0.622 | −0.033              |
 
 | Tipo asset      | Recall | Criticità utenza | Recall |
@@ -47,8 +47,8 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 ### Analisi approfondita del bias
 
 - **Incertezza delle stime** (D-44): ogni area ha solo 24-43 guasti reali nel test set. Recall con intervallo bootstrap al 95%: Nord 0.71 [0.57-0.89], Centro 0.75 [0.58-0.92], Sud 0.88 [0.76-0.97], Isole 0.93 [0.84-1.00]. Gli intervalli si sovrappongono: il gap di recall è un segnale da monitorare, non una differenza dimostrata.
-- **Gruppi incrociati** (D-45, almeno 15 asset): il gruppo servito peggio sono le **utenze standard di Centro e Nord** (recall 0.65 e 0.68), invisibile guardando area e criticità separatamente. Il label bias del Sud è concentrato su **trasformatori** (gap di calibrazione +0.25) e **utenze standard** (+0.21); sulle utenze critiche del Sud è quasi assente (+0.03).
-- **Proxy residuo**: tolta l'area, le altre caratteristiche la indovinano nel 58% dei casi (contro il 38% del caso), soprattutto tramite giorni dall'ultima manutenzione ed età. Distinguono però a fatica Sud e Isole (67% contro 65%).
+- **Gruppi incrociati** (D-45, almeno 15 asset): il gruppo servito peggio sono le **utenze standard di Centro e Nord** (recall 0.65 e 0.68), invisibile guardando area e criticità separatamente. Il label bias del Sud è concentrato su **trasformatori** (gap di calibrazione +0.25) e **utenze standard** (+0.21); sulle utenze critiche del Sud è quasi assente (+0.02).
+- **Proxy residuo**: tolta l'area, le altre caratteristiche la indovinano nel 57% dei casi (contro il 38% del caso), soprattutto tramite giorni dall'ultima manutenzione ed età. Distinguono però a fatica Sud e Isole (67% contro 65%).
 - **Profilo a parità di età**: tra 15 e 25 anni il Sud registra 0.24 guasti contro 0.39 delle Isole, oltre 25 anni 0.28 contro 0.54. I sensori sono uguali: conferma l'ipotesi di sotto-segnalazione (D-04).
 - **Esposizione all'automazione**: prima di D-43 Nord e Centro avevano la quota più alta di auto-esecuzione (70% e 53%) e la recall più bassa; sul test set 6 guasti reali sarebbero stati auto-eseguiti senza revisione. Con D-43 restano 2 (Isole).
 
@@ -66,5 +66,5 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 - La sotto-segnalazione al Sud è un'ipotesi; il modello non la può correggere (il problema è nelle etichette). È gestita dalla supervisione: le decisioni del Sud non vengono mai auto-eseguite (D-19).
 - Il drift è simulato: il dataset non ha date (D-26).
 - Il rapporto di costo 10:1 è un'ipotesi del gruppo, non un dato aziendale.
-- 182 ispezioni inutili su 720: è il prezzo di un recall più alto.
+- 183 ispezioni inutili su 720: è il prezzo di un recall più alto.
 - Dipendenze fissate a versioni esatte (D-38): `train_baseline.py` produce gli stessi numeri su ogni macchina con Python ≥ 3.12.

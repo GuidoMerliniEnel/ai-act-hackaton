@@ -11,7 +11,7 @@ justifications. The layer adds an emergency stop and bias and drift
 monitoring. Cards carry plain-language explanations with a "what if"
 scenario, and every step goes to a tamper-evident audit trail.
 
-Built during the *AI Human Oversight Hackathon* (Deloitte × Enel FNC,
+Built during the _AI Human Oversight Hackathon_ (Deloitte × Enel FNC,
 7 October 2026) on top of the EnerGuard starter kit. The system is
 **high risk** under the AI Act (Annex III, point 2: critical
 infrastructure, electricity supply).
@@ -143,13 +143,13 @@ python test_llm.py              # explanation engine: template and LLM
   out of 720.
 - **Submission documents** in [`consegna/`](consegna/):
 
-| Document | Content |
-| --- | --- |
-| [1_Model_Card.md](consegna/1_Model_Card.md) | Purpose, data, global and subgroup metrics, confidence, limits, AI Act classification |
-| [2_Relazione_Impatto.md](consegna/2_Relazione_Impatto.md) | Risks, mitigations, what is not solved |
-| [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications |
-| [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md) | 5–7 min demo script and answers to tests T1–T6 |
-| [5_Discorso_Presentazione.md](consegna/5_Discorso_Presentazione.md) | Full presentation speech, timed to the demo script |
+| Document                                                              | Content                                                                               |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| [1_Model_Card.md](consegna/1_Model_Card.md)                           | Purpose, data, global and subgroup metrics, confidence, limits, AI Act classification |
+| [2_Relazione_Impatto.md](consegna/2_Relazione_Impatto.md)             | Risks, mitigations, what is not solved                                                |
+| [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications                                                    |
+| [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md)       | 5–7 min demo script and answers to tests T1–T6                                        |
+| [5_Discorso_Presentazione.md](consegna/5_Discorso_Presentazione.md)   | Full presentation speech, timed to the demo script                                    |
 
 Every decision (D-01..D-45) is recorded with its rationale in
 [TRACCIAMENTO_MODIFICHE.md](TRACCIAMENTO_MODIFICHE.md) and cited in the
