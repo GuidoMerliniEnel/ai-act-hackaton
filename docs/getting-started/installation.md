@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.12 or later (required by the pinned NumPy, SciPy and SHAP versions)
+- Python 3.11 or later (the hackathon kit uses 3.11; pinned versions install on 3.11 to 3.14)
 - Git
 
 ## Set up the environment

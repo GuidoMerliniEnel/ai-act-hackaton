@@ -72,6 +72,31 @@ if om.stop_attivi:
     st.error(f"⛔ **EMERGENCY STOP ATTIVO** su {', '.join(sorted(om.stop_attivi))} · "
              f"{n_ferme} decisioni bloccate. Nessuna azione nell'ambito verrà eseguita finché "
              "lo stop non viene tolto con doppia conferma.")
+
+
+def _indicatori_bias():
+    bd_ = BiasDetector()
+    gap_rec = {c: (lambda m: round(m["recall"].max() - m["recall"].min(), 3))(bd_.metriche_per_gruppo(pred, c))
+               for c in ("area_geografica", "tipo_asset")}
+    cal = bd_.calibrazione_per_gruppo(pred, "area_geografica")
+    n_allerte = (len(bd_.gruppi_recall_basso(bd_.metriche_per_gruppo(pred, "area_geografica"), "area_geografica"))
+                 + int(cal["allerta"].sum()))
+    return gap_rec, float(cal["gap_calibrazione"].abs().max()), n_allerte
+
+
+def _copertura_spiegazioni():
+    sp = list(st.session_state.get("spiegazioni", {}).values())
+    if not sp:
+        return None, None
+    b1 = sum(len(s.fattori) >= 3 and bool(s.testo) for s in sp) / len(sp)
+    b3c = sum(s.fonte.startswith("template(fallback") for s in sp) / len(sp)
+    return round(b1, 3), round(b3c, 3)
+
+
+# DECISIONE (D-47): i KPI chiave sempre in testa, come nel mockup di riferimento; riempita a fine pagina
+_testata = st.container()
+_gap_rec, _gap_cal, _n_allerte = _indicatori_bias()
+_integra, _ = audit.verifica_catena()
 operatore = st.sidebar.text_input("ID operatore", value="OP-001")
 
 # --- EMERGENCY STOP: sempre visibile, mai a piu' di un click ---
@@ -428,6 +453,26 @@ with tab_kpi:
     st.caption("Distribuzione livelli: " + " · ".join(
         f"{l} {n}" for l, n in k["distribuzione_livelli"].items()))
 
+    st.subheader("Comprensibilità, fairness e tracciabilità")
+    b1, b3c = _copertura_spiegazioni()
+    d1, d2, d3 = st.columns(3)
+    d1.metric("B1 · Copertura spiegazioni (≥ 3 fattori)", f"{b1:.0%}" if b1 is not None else "n/d",
+              delta="target 100%", delta_color="off")
+    d2.metric("B3c · Spiegazioni da fallback", f"{b3c:.0%}" if b3c is not None else "n/d",
+              delta="target < 5%", delta_color="off")
+    d3.metric("B4 · Click spiegazione / override / stop", "1 · 2 · 1",
+              delta="target ≤ 2 · ≤ 2 · ≤ 1", delta_color="off")
+    e1, e2, e3 = st.columns(3)
+    e1.metric("C1 · Gap di recall (area · tipo)", f"{_gap_rec['area_geografica']} · {_gap_rec['tipo_asset']}",
+              delta="allerta > 0.15", delta_color="off")
+    e2.metric("C2 · Gap di calibrazione massimo", round(_gap_cal, 3),
+              delta="allerta > 0.10", delta_color="off")
+    e3.metric("D2 · Integrità del log", "VERIFICATA" if _integra else "COMPROMESSA",
+              delta="catena di hash", delta_color="off")
+    st.caption("B4: spiegazione = 1 click (apri la card); override = 2 (apri la card, poi Rifiuta o Modifica); "
+               "stop = 1 click in sidebar più la conferma. B1 e B3c sono calcolati sulle card già aperte "
+               "in questa sessione.")
+
     st.subheader("Carico e comportamento per revisore")
     rev = om.per_revisore()
     in_attesa = k["in_attesa"]
@@ -440,3 +485,15 @@ with tab_kpi:
                 st.error(f"Possibile approvazione a occhi chiusi da parte di {x['revisore']}: {x['allerta']}.")
     else:
         st.caption("Nessuna decisione ancora revisionata.")
+
+with _testata:
+    _k = om.kpi()
+    _b1, _ = _copertura_spiegazioni()
+    h1, h2, h3, h4, h5, h6 = st.columns(6)
+    h1.metric("In attesa di revisione", _k["in_attesa"])
+    h2.metric("Tempo mediano revisione", f"{_k['A3_tempo_mediano_revisione_s']} s"
+              if _k["A3_tempo_mediano_revisione_s"] is not None else "n/d")
+    h3.metric("Tasso override", f"{_k['A2_tasso_override']:.0%}" if _k["A2_tasso_override"] is not None else "n/d")
+    h4.metric("Copertura spiegazioni", f"{_b1:.0%}" if _b1 is not None else "n/d")
+    h5.metric("Allerte fairness attive", _n_allerte)
+    h6.metric("Integrità audit trail", "OK" if _integra else "ROTTA")

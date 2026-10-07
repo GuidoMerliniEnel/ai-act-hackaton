@@ -1,12 +1,12 @@
 # EnerGuard Starter Kit - dipendenze
-# DECISIONE (D-38): versioni esatte, cosi' modello e numeri della consegna sono identici su ogni macchina
+# DECISIONE (D-38, D-46): versioni esatte, installabili da Python 3.11 (ambiente del kit) a 3.14
 scikit-learn==1.9.1
-scipy==1.18.1
+scipy==1.17.1
 pandas==3.0.6
-numpy==2.5.3
+numpy==2.4.6
 streamlit==1.65.0
 altair==6.3.0
-shap==0.52.0
+shap==0.51.0
 joblib==1.6.0
 requests==2.34.2   # chiamate all'LLM esterno (explainer.py)
 # opzionali

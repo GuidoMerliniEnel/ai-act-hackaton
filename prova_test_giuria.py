@@ -40,6 +40,14 @@ def rac(asset, tipo, area, crit="standard", p=0.7, c=0.7, azione="programma_manu
     return Raccomandazione(asset, tipo, area, crit, p, c, azione, [])
 
 
+print("\nT0 · Riproducibilita' dei numeri della consegna (D-46)")
+_p = carica_csv("predizioni.csv")
+_fp = int(((_p["y_true"] == 0) & (_p["y_pred"] == 1)).sum())
+_fn = int(((_p["y_true"] == 1) & (_p["y_pred"] == 0)).sum())
+verifica("T0", (_fp, _fn) == (182, 21),
+         f"falsi positivi {_fp}, guasti mancati {_fn} (documenti: 182 e 21). Se diversi: eseguire "
+         "run_dashboard con --retrain e controllare le versioni di requirements.txt")
+
 print("\nT1 · Override reale (cancello)")
 om, log, eseguite = nuovo_sistema()
 r = om.sottometti(rac("AST-T1", "trasformatore", "Nord"))

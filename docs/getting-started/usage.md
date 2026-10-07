@@ -65,6 +65,10 @@ period, and export it to CSV or JSONL ([D-29](../decisions/index.md#d-29)).
 
 ### Oversight KPIs
 
+A bar at the top of every screen shows the key KPIs: pending decisions,
+median review time, override rate, explanation coverage, active fairness
+alerts and audit-trail integrity ([D-47](../decisions/index.md#d-47)).
+
 KPIs A1–A6 with targets and the distribution of levels, plus per-reviewer
 statistics with alerts for very fast reviews, approve-everything patterns
 and short justifications ([D-40](../decisions/index.md#d-40)). See

@@ -4,14 +4,14 @@ REM Avvia la dashboard EnerGuard su Windows. Uso: run_dashboard.bat [--retrain]
 setlocal
 cd /d "%~dp0"
 
-REM D-38: con Python < 3.12 le versioni fissate non si installano e i numeri cambierebbero
-python -c "import sys; sys.exit(sys.version_info < (3, 12))" || (
-  echo Serve Python 3.12 o superiore. Installalo da python.org e rilancia.
+REM D-38, D-46: con Python < 3.11 le versioni fissate non si installano e i numeri cambierebbero
+python -c "import sys; sys.exit(sys.version_info < (3, 11))" || (
+  echo Serve Python 3.11 o superiore. Installalo da python.org e rilancia.
   exit /b 1
 )
 if exist .venv\Scripts\python.exe (
-  .venv\Scripts\python.exe -c "import sys; sys.exit(sys.version_info < (3, 12))" || (
-    echo .venv usa Python ^< 3.12: cancella la cartella .venv e rilancia lo script.
+  .venv\Scripts\python.exe -c "import sys; sys.exit(sys.version_info < (3, 11))" || (
+    echo .venv usa Python ^< 3.11: cancella la cartella .venv e rilancia lo script.
     exit /b 1
   )
 )
