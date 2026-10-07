@@ -58,6 +58,7 @@ class Raccomandazione:
     stato: StatoDecisione = StatoDecisione.IN_ATTESA
     revisore: Optional[str] = None
     motivazione: Optional[str] = None
+    scaduta_sla: bool = False
 
 
 class OversightManager:
@@ -120,8 +121,10 @@ class OversightManager:
             raise ValueError("Motivazione obbligatoria (minimo 15 caratteri). "
                              "Senza motivazione non c'e' audit trail.")
         r = self._trova(decision_id)
-        if r.stato != StatoDecisione.IN_ATTESA:
+        if r.stato not in (StatoDecisione.IN_ATTESA, StatoDecisione.ESCALATION):
             raise ValueError(f"Decisione {decision_id} gia' chiusa: {r.stato}")
+        if self._stop_applicabile(r):  # DECISIONE: sotto stop nessuna revisione, altrimenti T3 e' aggirabile
+            raise ValueError(f"Decisione {decision_id} nell'ambito di uno stop attivo: non revisionabile.")
         r.stato, r.revisore, r.motivazione = esito, revisore, motivazione
         if azione_modificata:
             r.azione_proposta = azione_modificata
@@ -134,22 +137,59 @@ class OversightManager:
     # EMERGENCY STOP - deve bloccare DAVVERO (la giuria lo verifica)
     # ------------------------------------------------------------------
     def attiva_stop(self, ambito: str, operatore: str, motivazione: str):
-        """ambito: 'GLOBALE' | 'area:<nome>' | 'tipo:<tipo_asset>'"""
+        """ambito: 'GLOBALE' | 'area:<nome>' | 'tipo:<tipo_asset>' | combinazione con '+'"""
+        self._valida_motivazione(motivazione)
         self.stop_attivi.add(ambito)
-        self.audit.log(operatore, f"emergency_stop_ON:{ambito}",
-                       None, extra={"motivazione": motivazione})
-        # TODO: le decisioni gia' in coda che ricadono nell'ambito
-        # devono passare a BLOCCATA_STOP, non restare eseguibili.
+        bloccate = []
+        # DECISIONE: lo stop congela anche la coda esistente, non solo le nuove (test T3)
+        for r in self.coda:
+            if (r.stato in (StatoDecisione.IN_ATTESA, StatoDecisione.ESCALATION)
+                    and self._match_ambito(ambito, r)):
+                r.stato = StatoDecisione.BLOCCATA_STOP
+                bloccate.append(r.id)
+                self.audit.log(operatore, f"blocco_emergency_stop:{ambito}", r)
+        self.audit.log(operatore, f"emergency_stop_ON:{ambito}", None,
+                       extra={"motivazione": motivazione, "decisioni_bloccate": bloccate})
+        return bloccate
 
     def disattiva_stop(self, ambito: str, operatore: str, motivazione: str):
+        self._valida_motivazione(motivazione)
         self.stop_attivi.discard(ambito)
         self.audit.log(operatore, f"emergency_stop_OFF:{ambito}",
                        None, extra={"motivazione": motivazione})
 
+    @staticmethod
+    def _valida_motivazione(motivazione: str):
+        if not motivazione or len(motivazione.strip()) < 15:
+            raise ValueError("Motivazione obbligatoria (minimo 15 caratteri).")
+
+    @staticmethod
+    def _match_ambito(ambito: str, r: Raccomandazione) -> bool:
+        """'area:Sud+tipo:linea_AT' vale solo se TUTTE le parti coincidono (AND)."""
+        if ambito == "GLOBALE":
+            return True
+        chiavi = {f"area:{r.area_geografica}", f"tipo:{r.tipo_asset}"}
+        return all(parte in chiavi for parte in ambito.split("+"))
+
     def _stop_applicabile(self, r: Raccomandazione) -> bool:
-        return ("GLOBALE" in self.stop_attivi
-                or f"area:{r.area_geografica}" in self.stop_attivi
-                or f"tipo:{r.tipo_asset}" in self.stop_attivi)
+        return any(self._match_ambito(a, r) for a in self.stop_attivi)
+
+    # ------------------------------------------------------------------
+    def controlla_sla(self, adesso: Optional[datetime] = None) -> list[str]:
+        """DECISIONE: oltre lo SLA la decisione va in ESCALATION e non viene mai eseguita in silenzio."""
+        adesso = adesso or datetime.now()
+        scadute = []
+        for r in self.coda:
+            if r.stato != StatoDecisione.IN_ATTESA:
+                continue
+            minuti = (adesso - datetime.fromisoformat(r.creata_il)).total_seconds() / 60
+            if minuti > self.sla_minuti:
+                r.stato = StatoDecisione.ESCALATION
+                r.scaduta_sla = True
+                scadute.append(r.id)
+                self.audit.log("SISTEMA", "escalation_sla_scaduto", r,
+                               extra={"minuti_in_attesa": round(minuti, 1)})
+        return scadute
 
     # ------------------------------------------------------------------
     def _esegui(self, r: Raccomandazione):
@@ -161,6 +201,8 @@ class OversightManager:
         assert not (r.livello == LivelloSupervisione.HIC
                     and r.stato == StatoDecisione.AUTO_ESEGUITA), \
             "Violazione: una decisione HIC non puo' mai essere auto-eseguita"
+        assert not self._stop_applicabile(r), \
+            f"Violazione: {r.asset_id} rientra in uno stop attivo"
         print(f"[ESECUZIONE] {r.asset_id}: {r.azione_proposta} ({r.livello.value})")
 
     def _trova(self, decision_id: str) -> Raccomandazione:

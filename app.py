@@ -61,15 +61,23 @@ st.sidebar.caption(
 st.sidebar.subheader("Emergency stop")
 ambito = st.sidebar.selectbox("Ambito", ["GLOBALE", "area:Sud", "area:Nord",
                                          "area:Centro", "area:Isole",
-                                         "tipo:linea_AT", "tipo:trasformatore"])
-mot_stop = st.sidebar.text_input("Motivazione stop")
+                                         "tipo:linea_AT", "tipo:trasformatore",
+                                         "tipo:cabina_primaria", "tipo:turbina_eolica",
+                                         "area:Sud+tipo:linea_AT"])
+mot_stop = st.sidebar.text_input("Motivazione stop (min 15 caratteri)")
 c1, c2 = st.sidebar.columns(2)
-if c1.button("ATTIVA", type="primary"):
-    om.attiva_stop(ambito, operatore, mot_stop or "non fornita")  # TODO: rendere obbligatoria
-if c2.button("Disattiva"):
-    om.disattiva_stop(ambito, operatore, mot_stop or "non fornita")
+try:
+    if c1.button("ATTIVA", type="primary"):
+        n_bloccate = len(om.attiva_stop(ambito, operatore, mot_stop))
+        st.sidebar.success(f"Stop {ambito} attivo: {n_bloccate} decisioni in coda bloccate.")
+    if c2.button("Disattiva"):
+        om.disattiva_stop(ambito, operatore, mot_stop)
+except ValueError as e:
+    st.sidebar.error(str(e))
 if om.stop_attivi:
     st.sidebar.error(f"STOP ATTIVI: {', '.join(sorted(om.stop_attivi))}")
+
+om.controlla_sla()
 
 @st.cache_data(show_spinner=False)
 def _fattori_asset(asset_id: str):
@@ -96,8 +104,11 @@ tab_coda, tab_matrice, tab_bias, tab_audit = st.tabs(
 
 # ----------------------------------------------------------------------
 with tab_coda:
-    pendenti = [r for r in om.coda if r.stato == StatoDecisione.IN_ATTESA]
-    st.metric("Decisioni in attesa di revisione umana", len(pendenti))
+    pendenti = [r for r in om.coda
+                if r.stato in (StatoDecisione.IN_ATTESA, StatoDecisione.ESCALATION)]
+    st.metric("Decisioni in attesa di revisione umana", len(pendenti),
+              delta=f"{sum(r.stato == StatoDecisione.ESCALATION for r in pendenti)} in escalation",
+              delta_color="inverse")
     for r in sorted(pendenti, key=lambda x: -x.prob_guasto)[:10]:
         with st.expander(
                 f"{'🔴' if r.livello.value == 'HIC' else '🟠'} {r.asset_id} · "
@@ -112,15 +123,21 @@ with tab_coda:
             mot = st.text_area("Motivazione (obbligatoria)", key=f"m{r.id}")
             az = st.selectbox("Azione", AZIONI,
                               index=AZIONI.index(r.azione_proposta), key=f"a{r.id}")
-            b1, b2, b3 = st.columns(3)
+            b1, b2, b3, b4 = st.columns(4)
             try:
                 if b1.button("Approva", key=f"ok{r.id}"):
                     om.revisiona(r.id, StatoDecisione.APPROVATA, operatore, mot)
+                    st.rerun()
                 if b2.button("Modifica e approva", key=f"mod{r.id}"):
                     om.revisiona(r.id, StatoDecisione.MODIFICATA, operatore, mot,
                                  azione_modificata=az)
+                    st.rerun()
                 if b3.button("Rifiuta", key=f"no{r.id}"):
                     om.revisiona(r.id, StatoDecisione.RIFIUTATA, operatore, mot)
+                    st.rerun()
+                if b4.button("Escalation", key=f"esc{r.id}"):
+                    om.revisiona(r.id, StatoDecisione.ESCALATION, operatore, mot)
+                    st.rerun()
             except ValueError as e:
                 st.error(str(e))
 
