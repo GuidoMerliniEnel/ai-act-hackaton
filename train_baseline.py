@@ -16,14 +16,14 @@ from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.model_selection import train_test_split
 
 from bias_detector import BiasDetector
-from utils_io import carica_csv
+from utils_io import carica_csv, prepara_feature
 
-# DECISIONE: 0.30 -> recall 0.80 con 153 FP (a 0.20: recall 0.92 ma 230 FP, troppi per la coda umana); FN stimato ~10x FP
-SOGLIA = 0.30
+# DECISIONE: costo FN ~10x FP; per utenze alte/critiche 0.20 perche' l'HIC protegge solo cio' che supera la soglia
+SOGLIE = {"standard": 0.30, "alta": 0.20, "critica": 0.20}
 
 df = carica_csv("energuard_dataset.csv")
 y = df["guasto_entro_30gg"]
-X = pd.get_dummies(df.drop(columns=["asset_id", "guasto_entro_30gg"]))
+X = prepara_feature(df)
 
 X_tr, X_te, y_tr, y_te, df_tr, df_te = train_test_split(
     X, y, df, test_size=0.3, random_state=0, stratify=y)
@@ -33,7 +33,7 @@ modello = RandomForestClassifier(
 modello.fit(X_tr, y_tr)
 
 proba = modello.predict_proba(X_te)[:, 1]
-pred = (proba >= SOGLIA).astype(int)
+pred = (proba >= df_te["criticita_utenza"].map(SOGLIE).values).astype(int)
 
 print("AUC:", round(roc_auc_score(y_te, proba), 3))
 print(classification_report(y_te, pred, digits=3))
@@ -43,7 +43,7 @@ valut = df_te.copy()
 valut["y_true"], valut["y_pred"], valut["proba"] = y_te.values, pred, proba
 
 bd = BiasDetector()
-for col in ["area_geografica", "tipo_asset"]:
+for col in ["area_geografica", "tipo_asset", "criticita_utenza"]:
     m = bd.metriche_per_gruppo(valut, col)
     print(f"\n=== Metriche per {col} ===")
     print(m.to_string(index=False))
@@ -58,5 +58,5 @@ joblib.dump(modello, "modello.joblib")
 valut.to_csv("predizioni.csv", index=False)
 print("\nSalvati: modello.joblib, predizioni.csv")
 
-# ESITO INDAGINE Sud/Isole: guasti registrati 0.24/0.45 contro 0.09 del Nord, con sensori simili e piu' anni/meno manutenzioni.
-# Il modello sovrastima il Sud (proba 0.40 vs osservato 0.24, gap 0.159): sospetta sotto-segnalazione, vedi TRACCIAMENTO_MODIFICHE.md.
+# ESITO INDAGINE Sud/Isole: profili quasi identici ma guasti registrati 0.24 contro 0.45 -> sospetta sotto-segnalazione al Sud.
+# Mitigazioni: area fuori dal modello, soglie per criticita', allerta di calibrazione (vedi TRACCIAMENTO_MODIFICHE.md).

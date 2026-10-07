@@ -11,12 +11,12 @@ import joblib
 import pandas as pd
 
 from explainer import ConfigLLM, SpiegatoreLLM, SpiegatoreTemplate, estrai_fattori
-from utils_io import carica_csv
+from utils_io import carica_csv, prepara_feature
 
 modello = joblib.load("modello.joblib")
 pred = carica_csv("predizioni.csv")
 df = carica_csv("energuard_dataset.csv")
-X = pd.get_dummies(df.drop(columns=["asset_id", "guasto_entro_30gg"]))
+X = prepara_feature(df)
 feature_names = list(X.columns)
 
 riga = pred[pred["y_pred"] == 1].iloc[0]

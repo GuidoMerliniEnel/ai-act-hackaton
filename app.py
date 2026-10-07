@@ -15,7 +15,7 @@ import streamlit as st
 from audit_logger import AuditLogger
 from explainer import ConfigLLM, crea_spiegatore, estrai_fattori
 from bias_detector import BiasDetector
-from utils_io import carica_csv
+from utils_io import carica_csv, prepara_feature
 from oversight_manager import (OversightManager, Raccomandazione,
                                StatoDecisione, AZIONI, proponi_azione)
 
@@ -87,7 +87,7 @@ def _fattori_asset(asset_id: str):
     import joblib
     modello = joblib.load("modello.joblib")
     df = carica_csv("energuard_dataset.csv")
-    X = pd.get_dummies(df.drop(columns=["asset_id", "guasto_entro_30gg"]))
+    X = prepara_feature(df)
     x = X.loc[df["asset_id"] == asset_id].iloc[0]
     return estrai_fattori(modello, x, list(X.columns))
 

@@ -137,6 +137,26 @@ Evidenze da un esperimento sul test set (modello con e senza area, soglie per ar
 4. **`area_geografica` tolta dal modello, tenuta per monitoraggio, stop e fairness.** Senza area: AUC 0.862 → 0.868, gap di recall 0.41 → 0.31, FPR Isole 0.67 → 0.47. Limite dichiarato: il gap di calibrazione del Sud peggiora (0.159 → 0.177), perché il bias sta nelle etichette e il proxy passa da età e manutenzioni.
 5. **Pacchetto di mitigazione, misurato prima e dopo**: area fuori dal modello; soglia per criticità; allerta di calibrazione sopra 0.10 che promuove automaticamente a HITL le decisioni HOTL dell'area interessata.
 
+### Mitigazione: prima e dopo (test set 720 asset)
+
+Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da training, dashboard e `test_llm.py`) e in `train_baseline.py` (`SOGLIE` per criticità: standard 0.30, alta e critica 0.20).
+
+| Indicatore | Prima (area nel modello, soglia unica 0.30) | Dopo |
+| --- | --- | --- |
+| AUC | 0.862 | 0.868 |
+| Recall globale | 0.798 | 0.837 |
+| Guasti mancati (FN) | 26 | 21 |
+| FN su utenze critiche / alte | 3 / 6 | 1 / 1 |
+| Ispezioni inutili (FP) | 153 | 183 |
+| Gap di recall tra aree | 0.411 (Centro) | 0.216 (Nord) |
+| Recall Nord / Centro | 0.679 / 0.542 | 0.714 / 0.750 |
+| FPR Isole | 0.667 | 0.622 |
+| Gap calibrazione Sud | 0.159 | 0.177 |
+
+- Costo della scelta: 30 ispezioni inutili in più per 5 guasti mancati in meno, di cui 7 su utenze critiche e alte. Coerente con il rapporto 10:1.
+- Restano due allerte aperte: gap di recall Nord 0.216 (sopra 0.15, limite dichiarato del modello) e calibrazione Sud 0.177, che il modello non può correggere perché il problema è nelle etichette. Per questa serve la terza mitigazione (allerta che promuove a HITL), da implementare.
+- Nuova allerta per criticità: le utenze standard hanno recall 0.765 contro 0.971 delle alte (gap 0.206). È voluta: è l'effetto della soglia più bassa sulle utenze più delicate.
+
 ## Da fare
 
 - Tier 2: conferma stop e sblocco con doppia conferma; blocco attivo dei motivi duplicati in `revisiona` (oggi solo misurato da A4).
