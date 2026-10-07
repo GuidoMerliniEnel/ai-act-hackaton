@@ -289,6 +289,7 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 
 - Repository allineato alle linee guida [Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO): `LICENSE` (Apache-2.0), `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/CODEOWNERS`, template di issue e PR, header SPDX nei sorgenti.
 - Sito di documentazione Zensical in `docs/` (inglese) con tema Enel Design System; workflow `docs.yml` per GitHub Pages.
+- Nella sezione `About` del sito aggiunto il link pubblico GitHub Pages: `https://guidomerlinienel.github.io/ai-act-hackaton/`.
 - Da [reference_architectures](https://github.com/ENEL-GICT-PTG/reference_architectures): istruzioni Copilot OP35/OP36, `AGENTS.md`, agente tech writer, skill `enel-design-system`, `renovate.json5` e gate di sicurezza e licenze in `ci.yml`.
 
 ## Merge del branch `tier4`
