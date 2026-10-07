@@ -55,6 +55,24 @@ python prova_test_giuria.py     # rehearsal of the 6 jury tests (expect 10/10)
 python test_llm.py              # explanation engine: template and LLM
 ```
 
+### Automated narrated demo
+
+`demo_automatica.py` reads the speech in `consegna/5_Discorso_Presentazione.md`
+aloud and drives the dashboard with Playwright, following the on-screen
+instructions in brackets: it opens AST-01148, rejects it, searches the audit
+trail, activates the South HV-line stop and walks through the bias tabs.
+
+```bash
+pip install -r requirements-demo.txt && python -m playwright install chromium
+./run_dashboard.sh                         # terminal 1
+python demo_automatica.py                  # terminal 2 (~7 min)
+python demo_automatica.py --voce edge      # neural voice (needs internet)
+python demo_automatica.py --registra video # also save a .webm recording
+```
+
+The demo really rejects a decision and activates a stop: restart the
+dashboard before running it again.
+
 ## What Was Built
 
 ### Tier 1 — Model and data (D-01..D-07)
@@ -234,13 +252,15 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 ├── audit_logger.py             # hash-chained JSONL audit trail
 ├── train_baseline.py           # model training and fairness report
 ├── utils_io.py                 # CSV loading, feature preparation, thresholds
-├── prova_test_giuria.py        # rehearsal of jury tests T1–T6
+├── prova_test_giuria.py        # rehearsal of jury tests T0–T6
+├── demo_automatica.py          # narrated demo: text-to-speech + Playwright
 ├── test_llm.py                 # explanation engine smoke test
 ├── consegna/                   # Tier 4 submission documents
 ├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-47
 ├── zensical.toml               # documentation site configuration
 ├── requirements.txt            # application dependencies
 ├── requirements-docs.txt       # documentation dependencies
+├── requirements-demo.txt       # narrated demo dependencies (Playwright, edge-tts)
 └── energuard_dataset*.csv      # synthetic dataset
 ```
 
