@@ -149,6 +149,7 @@ python test_llm.py              # explanation engine: template and LLM
 | [2_Relazione_Impatto.md](consegna/2_Relazione_Impatto.md) | Risks, mitigations, what is not solved |
 | [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications |
 | [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md) | 5–7 min demo script and answers to tests T1–T6 |
+| [5_Discorso_Presentazione.md](consegna/5_Discorso_Presentazione.md) | Full presentation speech, timed to the demo script |
 
 Every decision (D-01..D-45) is recorded with its rationale in
 [TRACCIAMENTO_MODIFICHE.md](TRACCIAMENTO_MODIFICHE.md) and cited in the
