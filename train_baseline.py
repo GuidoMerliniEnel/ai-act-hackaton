@@ -18,7 +18,8 @@ from sklearn.model_selection import train_test_split
 from bias_detector import BiasDetector
 from utils_io import carica_csv
 
-SOGLIA = 0.35   # soglia decisionale: da discutere e giustificare in model card
+# DECISIONE: 0.30 -> recall 0.80 con 153 FP (a 0.20: recall 0.92 ma 230 FP, troppi per la coda umana); FN stimato ~10x FP
+SOGLIA = 0.30
 
 df = carica_csv("energuard_dataset.csv")
 y = df["guasto_entro_30gg"]
@@ -57,7 +58,5 @@ joblib.dump(modello, "modello.joblib")
 valut.to_csv("predizioni.csv", index=False)
 print("\nSalvati: modello.joblib, predizioni.csv")
 
-# DOMANDA GUIDA (Tier 1): confrontate i profili di rischio di Sud e Isole
-# (eta', manutenzioni, giorni dall'ultima manutenzione) con i rispettivi
-# tassi di guasto registrati. Notate qualcosa di strano? Cosa potrebbe
-# significare per la qualita' delle label storiche?
+# ESITO INDAGINE Sud/Isole: guasti registrati 0.24/0.45 contro 0.09 del Nord, con sensori simili e piu' anni/meno manutenzioni.
+# Il modello sovrastima il Sud (proba 0.40 vs osservato 0.24, gap 0.159): sospetta sotto-segnalazione, vedi TRACCIAMENTO_MODIFICHE.md.

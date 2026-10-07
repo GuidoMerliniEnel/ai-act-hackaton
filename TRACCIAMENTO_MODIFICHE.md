@@ -12,6 +12,8 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `9315609` | LLM: `max_completion_tokens` 400 → 2000 |
 | `2f0556a` | Tier 2: stop sulla coda esistente, ambiti combinati, escalation SLA |
 | `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL |
+| `4687e92` | Tracciamento: cronologia git |
+| (prossimo) | Tier 1: soglia 0.30 e indagine Sud/Isole |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -64,6 +66,33 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - Le nuove decisioni bloccate da uno stop finiscono nel log ma non nella coda.
 - `test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`: il suo `rec` non include `soglia_confidenza` (in `app.py` è passata correttamente).
 - Dall'analisi baseline: recall Nord/Centro ~0.54 contro Isole 0.95; FPR Sud/Isole ~0.49 (da indagare per il test T5).
+
+## Tier 1: decisioni e indagine
+
+### Soglia decisionale (`train_baseline.py`: 0.35 → 0.30)
+
+- Ipotesi di costo: un falso negativo (guasto non previsto, magari su utenza critica) costa circa 10 volte un falso positivo (ispezione inutile).
+- Sweep sul test set (720 asset):
+
+| Soglia | Recall | Precision | FN | FP |
+| --- | --- | --- | --- | --- |
+| 0.20 | 0.915 | 0.339 | 11 | 230 |
+| 0.30 | 0.798 | 0.402 | 26 | 153 |
+| 0.35 | 0.744 | 0.438 | 33 | 123 |
+| 0.50 | 0.519 | 0.540 | 62 | 57 |
+
+- Scelta 0.30: da 0.20 a 0.35 il costo è quasi piatto, ma 0.20 genera 230 ispezioni inutili su 720 e satura la coda umana (KPI A5). Con 0.30 il recall passa da 0.744 a 0.798. AUC invariato (0.862).
+
+### Anomalia Sud/Isole (test T5)
+
+- Guasti registrati: Nord 0.09, Centro 0.13, Sud 0.24, Isole 0.45.
+- Sud e Isole hanno asset più vecchi (23-25 anni contro 14), meno manutenzioni (1.7-2.1 contro 4.1) e più giorni dall'ultima (343-386 contro 167): una parte della differenza è spiegata dai dati.
+- Ma temperatura, vibrazione, carico e umidità sono identici tra le aree, e tipo asset e criticità hanno lo stesso mix.
+- Calibrazione: il modello prevede 0.40 al Sud contro uno 0.24 osservato (gap 0.159 > 0.10). Altrove il gap è circa 0.05.
+- FPR Sud 0.61 e Isole 0.67 contro 0.12-0.15 di Nord e Centro: `area_geografica` funziona da variabile proxy.
+- Ipotesi 1 (sotto-segnalazione al Nord e Centro): molti guasti non vengono registrati, quindi il tasso basso è un artefatto e il recall basso (0.54-0.68) non è reale.
+- Ipotesi 2 (processo di segnalazione diverso nelle aree con meno manutenzioni): i guasti registrati dipendono da chi ispeziona; meno manutenzioni, più guasti "scoperti" a posteriori.
+- Mitigazioni candidate (da implementare): soglia differenziata per area, promozione a HITL delle decisioni HOTL di Sud e Isole, allerta di calibrazione sopra 0.10.
 
 ## Da fare
 
