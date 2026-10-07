@@ -6,14 +6,14 @@ Registro cronologico di ciò che è stato cambiato rispetto allo starter kit, co
 
 Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato originale e reintrodotte come commit separati; nel codice i TODO risolti sono sostituiti da commenti `DECISIONE:` con il razionale. `.env`, `modello.joblib`, `predizioni.csv` e `audit_trail.jsonl` sono ignorati.
 
-| Commit | Contenuto |
-| --- | --- |
-| `2b69a86` | Baseline: starter kit originale |
-| `9315609` | LLM: `max_completion_tokens` 400 → 2000 |
+| Commit    | Contenuto                                                           |
+| --------- | ------------------------------------------------------------------- |
+| `2b69a86` | Baseline: starter kit originale                                     |
+| `9315609` | LLM: `max_completion_tokens` 400 → 2000                             |
 | `2f0556a` | Tier 2: stop sulla coda esistente, ambiti combinati, escalation SLA |
-| `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL |
-| `4687e92` | Tracciamento: cronologia git |
-| `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole |
+| `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL      |
+| `4687e92` | Tracciamento: cronologia git                                        |
+| `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole                            |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -74,12 +74,12 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - Ipotesi di costo: un falso negativo (guasto non previsto, magari su utenza critica) costa circa 10 volte un falso positivo (ispezione inutile).
 - Sweep sul test set (720 asset):
 
-| Soglia | Recall | Precision | FN | FP |
-| --- | --- | --- | --- | --- |
-| 0.20 | 0.915 | 0.339 | 11 | 230 |
-| 0.30 | 0.798 | 0.402 | 26 | 153 |
-| 0.35 | 0.744 | 0.438 | 33 | 123 |
-| 0.50 | 0.519 | 0.540 | 62 | 57 |
+| Soglia | Recall | Precision | FN  | FP  |
+| ------ | ------ | --------- | --- | --- |
+| 0.20   | 0.915  | 0.339     | 11  | 230 |
+| 0.30   | 0.798  | 0.402     | 26  | 153 |
+| 0.35   | 0.744  | 0.438     | 33  | 123 |
+| 0.50   | 0.519  | 0.540     | 62  | 57  |
 
 - Scelta 0.30: da 0.20 a 0.35 il costo è quasi piatto, ma 0.20 genera 230 ispezioni inutili su 720 e satura la coda umana (KPI A5). Con 0.30 il recall passa da 0.744 a 0.798. AUC invariato (0.862).
 
@@ -94,8 +94,42 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - Ipotesi 2 (processo di segnalazione diverso nelle aree con meno manutenzioni): i guasti registrati dipendono da chi ispeziona; meno manutenzioni, più guasti "scoperti" a posteriori.
 - Mitigazioni candidate (da implementare): soglia differenziata per area, promozione a HITL delle decisioni HOTL di Sud e Isole, allerta di calibrazione sopra 0.10.
 
+### Metriche disaggregate (soglia 0.30, test set 720 asset, recall globale 0.798)
+
+Gap di recall = recall massimo del gruppo meno recall del gruppo (allerta sopra 0.15). Gap di calibrazione = probabilità media predetta meno tasso osservato (allerta sopra 0.10).
+
+| Area | n | Guasti reali | Selezione | Recall | FNR | FPR | Precision | Gap recall | Gap calibr. | Allerta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Centro | 189 | 0.127 | 0.201 | 0.542 | 0.458 | 0.152 | 0.342 | 0.411 | 0.052 | recall |
+| Nord | 300 | 0.093 | 0.170 | 0.679 | 0.321 | 0.118 | 0.373 | 0.274 | 0.056 | recall |
+| Sud | 143 | 0.238 | 0.671 | 0.882 | 0.118 | 0.606 | 0.312 | 0.071 | 0.159 | calibrazione |
+| Isole | 88 | 0.489 | 0.807 | 0.953 | 0.047 | 0.667 | 0.577 | 0.000 | 0.048 | nessuna |
+
+| Tipo asset | n | Guasti reali | Selezione | Recall | FNR | FPR | Precision | Gap recall | Gap calibr. | Allerta |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| trasformatore | 271 | 0.159 | 0.362 | 0.744 | 0.256 | 0.289 | 0.327 | 0.127 | 0.094 | nessuna |
+| cabina_primaria | 135 | 0.156 | 0.348 | 0.762 | 0.238 | 0.272 | 0.340 | 0.109 | 0.098 | nessuna |
+| linea_AT | 171 | 0.199 | 0.345 | 0.824 | 0.176 | 0.226 | 0.475 | 0.047 | 0.051 | nessuna |
+| turbina_eolica | 143 | 0.217 | 0.364 | 0.871 | 0.129 | 0.223 | 0.519 | 0.000 | 0.041 | nessuna |
+
+Cosa dicono i numeri:
+
+- Per area il gap di recall è 0.41 (Centro) e 0.27 (Nord), ben oltre la soglia 0.15: al Nord e al Centro il modello manca un guasto su due o su tre.
+- Al Sud e sulle Isole il modello sovra-seleziona (67% e 81% degli asset segnalati) con FPR di 0.61 e 0.67: molte ispezioni inutili. Gap di selezione tra aree: 0.637.
+- Per tipo di asset nessun gap supera 0.15, ma trasformatori e cabine primarie si avvicinano (0.13 e 0.11) e sono i più critici per la fornitura.
+- La calibrazione è il segnale più netto del label bias: solo il Sud supera 0.10 (0.159).
+
+Da discutere nel gruppo:
+
+1. Il recall basso di Nord e Centro è un difetto del modello o un effetto di guasti non registrati (ipotesi 1)? Cosa cambierebbe nella soglia per area?
+2. Per Sud e Isole conviene alzare la soglia (meno falsi positivi) o promuovere a HITL tutte le decisioni (più supervisione, stesso volume)?
+3. Il costo 10:1 tra falso negativo e falso positivo regge anche per utenze standard? Per le utenze critiche la decisione è comunque HIC.
+4. `area_geografica` va tolta dalle feature del modello, visto che fa da proxy?
+5. Quale mitigazione implementiamo e come ne misuriamo l'effetto prima e dopo (serve per il livello 4 della rubrica sulla fairness)?
+
 ## Da fare
 
 - Tier 2: conferma stop e sblocco con doppia conferma; blocco attivo dei motivi duplicati in `revisiona` (oggi solo misurato da A4).
 - Tier 3: matrice con soglie, bias/calibrazione/override per area, drift, alert che promuove HOTL a HITL, audit filtrabile, spiegazioni in ogni card.
-- Tier 1 e 4: indagine Sud/Isole, model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.
+- Tier 1: scelta della mitigazione per il label bias (punto 5 della discussione) e sua misura prima/dopo.
+- Tier 4: model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.
