@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.10 or later
+- Python 3.12 or later (required by the pinned NumPy, SciPy and SHAP versions)
 - Git
 
 ## Set up the environment

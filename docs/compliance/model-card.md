@@ -46,10 +46,10 @@ data without re-validation.
 | ---------------------------- | ----------------------- |
 | AUC                          | 0.868                   |
 | Recall                       | 0.837                   |
-| Precision                    | 0.371                   |
-| Accuracy                     | 0.717                   |
+| Precision                    | 0.372                   |
+| Accuracy                     | 0.718                   |
 | Missed failures (FN)         | 21 (1 critical, 1 high) |
-| Unnecessary inspections (FP) | 183                     |
+| Unnecessary inspections (FP) | 182                     |
 
 ## Metrics by subgroup
 
@@ -57,10 +57,10 @@ data without re-validation.
 
 | Area   | n   | Real failures | Selection | Recall | FPR   | Calibration gap |
 | ------ | --- | ------------- | --------- | ------ | ----- | --------------- |
-| Nord   | 300 | 0.093         | 0.200     | 0.714  | 0.147 | 0.062           |
+| Nord   | 300 | 0.093         | 0.197     | 0.714  | 0.143 | 0.062           |
 | Centro | 189 | 0.127         | 0.307     | 0.750  | 0.242 | 0.064           |
-| Sud    | 143 | 0.238         | 0.734     | 0.882  | 0.688 | **0.177**       |
-| Isole  | 88  | 0.489         | 0.773     | 0.930  | 0.622 | −0.034          |
+| Sud    | 143 | 0.238         | 0.734     | 0.882  | 0.688 | **0.178**       |
+| Isole  | 88  | 0.489         | 0.773     | 0.930  | 0.622 | −0.033          |
 
 Calibration gap = mean predicted probability − observed failure rate.
 Alert threshold: 0.10.
@@ -91,7 +91,7 @@ Alert threshold: 0.10.
       Centre show no sensor signal (mean vibration 2.8 vs 4.6). The model is
       well calibrated there, so this is a model limit, not label bias
       ([D-06](../decisions/index.md#d-06)).
-    - **South calibration gap (0.177).** Probably caused by under-reported
+    - **South calibration gap (0.178).** Probably caused by under-reported
       failures. It cannot be fixed in the model because the bias is in the
       labels; it is managed by oversight, and South decisions are promoted
       to HITL ([D-19](../decisions/index.md#d-19)).

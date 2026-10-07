@@ -30,8 +30,8 @@ characters or duplicated.
 the rest."
 
 **How EnerGuard passes:** select scope `area:Sud+tipo:linea_AT`, enter a
-justification, click **ATTIVA STOP**, then confirm. Verified: 8 decisions
-blocked (queue 42 → 34); the South wind turbine and the North HV line stay
+justification, click **ATTIVA STOP**, then confirm. Verified: the 7 queued
+HV-line decisions in the South are blocked; the South wind turbine and the North HV line stay
 active. The sidebar shows "STOP ATTIVI" and the log records the
 justification and blocked IDs.
 

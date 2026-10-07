@@ -56,10 +56,12 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 | D-34 | Scenario "e se...": il modello rifà la previsione con il fattore principale riportato alla mediana della flotta, e dice se l'intervento sarebbe ancora richiesto     | Spiegazione contrastiva, livello 4 della rubrica: mostra che cosa dovrebbe cambiare perché cambi la raccomandazione. È calcolata, non scritta a mano                                                                     | Tecnica             | `explainer.scenario_media`                |
 | D-35 | Script `prova_test_giuria.py` che esegue i 6 test della giuria su log temporanei                                                                                     | Prova generale ripetibile prima della demo; non tocca il log reale né `.env`. Oggi 8/8 verifiche superate                                                                                                                | Tecnica             | `prova_test_giuria.py`                    |
 | D-36 | Riquadri `!!!` del sito protetti con `<!-- prettier-ignore-start/end -->`                                                                                            | Il formatter al salvataggio toglieva il rientro: i 9 limiti dichiarati della model card inglese sarebbero finiti attaccati al titolo. Corretti anche 3 riquadri già rotti                                                | Tecnica             | `docs/`                                   |
-| D-37 | Banner rosso in cima alla schermata quando uno stop è attivo, con ambito e numero di decisioni bloccate | Rubrica "Interruzione", livello 4: lo stato di stop deve essere impossibile da ignorare, non solo una voce in sidebar | Tecnica | `app.py` |
-| D-38 | Statistiche per revisore: decisioni, tasso di approvazione, secondi tra due revisioni consecutive, motivazioni brevi; allerta se < 10 s, se approva tutto (≥ 5 decisioni) o se > 30% motivazioni brevi | Rubrica "Intervento umano", livello 4, e KPI A3 "monitorare per revisore". La dashboard non sa quando si apre una card: l'intervallo tra due revisioni è un'approssimazione dichiarata | Tecnica | `per_revisore`, scheda KPI |
-| D-39 | Nella card, 3 asset storici dello stesso tipo con sensori simili e se si sono guastati | Rubrica "Comprensibilità", livello 4 ("riferimento a casi simili"). Distanza sui sensori standardizzati; avviso che lo storico del Sud può sottostimare i guasti | Tecnica | `explainer.casi_simili` |
-| D-40 | Revisori differenziati per competenza **non** implementati | Richiede ruoli e autorizzazioni degli operatori: è una scelta di processo, non tecnica. Dichiarato come limite | Gruppo | Relazione d'impatto |
+| D-37 | Spiegazione generata una sola volta per decisione e conservata nella sessione; modello, dati e TreeExplainer caricati una volta per processo                         | Prima ogni click rifaceva le 10 chiamate LLM (circa 5 s) e le registrava di nuovo nel log. Ora un rerun della coda costa circa 0.1 s; la spiegazione mostrata è quella già registrata                                    | Tecnica             | `app.py` coda, `_risorse_modello`         |
+| D-38 | Dipendenze fissate a versioni esatte in `requirements.txt` (Python ≥ 3.12); numeri della consegna e del sito ricalcolati                                             | Con versioni libere scikit-learn diversi davano un modello diverso: 182 o 183 falsi positivi, 7 o 8 decisioni bloccate dallo stop. Ora la demo mostra esattamente i numeri dei documenti                                 | Tecnica             | `requirements.txt`                        |
+| D-39 | Banner rosso in cima alla schermata quando uno stop è attivo, con ambito e numero di decisioni bloccate | Rubrica "Interruzione", livello 4: lo stato di stop deve essere impossibile da ignorare, non solo una voce in sidebar | Tecnica | `app.py` |
+| D-40 | Statistiche per revisore: decisioni, tasso di approvazione, secondi tra due revisioni consecutive, motivazioni brevi; allerta se < 10 s, se approva tutto (≥ 5 decisioni) o se > 30% motivazioni brevi | Rubrica "Intervento umano", livello 4, e KPI A3 "monitorare per revisore". La dashboard non sa quando si apre una card: l'intervallo tra due revisioni è un'approssimazione dichiarata | Tecnica | `per_revisore`, scheda KPI |
+| D-41 | Nella card, 3 asset storici dello stesso tipo con sensori simili e se si sono guastati | Rubrica "Comprensibilità", livello 4 ("riferimento a casi simili"). Distanza sui sensori standardizzati; avviso che lo storico del Sud può sottostimare i guasti | Tecnica | `explainer.casi_simili` |
+| D-42 | Revisori differenziati per competenza **non** implementati | Richiede ruoli e autorizzazioni degli operatori: è una scelta di processo, non tecnica. Dichiarato come limite | Gruppo | Relazione d'impatto |
 
 ## Cronologia git
 
@@ -86,7 +88,10 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `1ceea5a` | Merge di `tier4` (Marco Gazzuolo): OSPO, sito `docs/`, test_llm     |
 | `66274e5` | Allineamento di `docs/` alla consegna ufficiale                     |
 | `bab5b46` | Formattazione automatica e riquadri del sito protetti (D-36)        |
-| (questo)  | Livello 4 rubrica: banner stop, per revisore, casi simili (D-37..D-40) |
+| `8a63728` | README con tutto il lavoro svolto, script `run_dashboard.sh`/`.bat` |
+| `e48ceab` | TODO residui chiusi; spiegazioni in cache di sessione (D-37)        |
+| `642684d` | Dipendenze a versioni esatte; numeri riallineati (D-38)             |
+| (questo)  | Livello 4 rubrica: banner stop, per revisore, casi simili (D-39..D-42) |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -262,7 +267,11 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 - Tier 2: completato.
 - Tier 3: completato.
 - Tier 1: completato.
-- Tier 4: documenti ufficiali di consegna in `consegna/` (model card, relazione d'impatto, Dichiarazione di oversight, scaletta demo e risposte ai test); `prova_test_giuria.py` 8/8. Versione inglese di supporto in `docs/compliance/` (sito Zensical). Resta: revisione dei documenti da parte del gruppo e prova della demo a voce.
+- Tier 4: documenti ufficiali di consegna in `consegna/` (model card, relazione d'impatto, Dichiarazione di oversight, scaletta demo e risposte ai test); `prova_test_giuria.py` 8/8. Versione inglese di supporto in `docs/compliance/` (sito Zensical).
+- Revisione dei documenti (7 ottobre): numeri ricalcolati da `predizioni.csv`; corretto il numero di caratteristiche (10, non 11); la scaletta usa `run_dashboard.sh`. Le differenze tra macchine (182/183 falsi positivi, 7/8 decisioni bloccate dallo stop) venivano dalle versioni libere delle librerie: risolte fissando le versioni (D-38) e riallineando consegna, sito e README. Prova della demo sul campione: AST-01148 (cabina primaria critica del Sud, 0.647) è HIC tra le prime 10 card, Sud promosso, A6 = 100%.
+- Resta solo la prova della demo a voce, sulla macchina della demo.
+- **Secondo merge con `main` di Marco (7 ottobre, pomeriggio)**: Marco aveva gi\u00e0 pubblicato D-37 (cache delle spiegazioni) e D-38 (versioni esatte). Le mie decisioni non ancora pubblicate (banner di stop, per revisore, casi simili, revisori per competenza) sono state rinumerate D-39..D-42. Codice fuso senza conflitti; 6 conflitti nei documenti risolti tenendo entrambe le parti; numeri della consegna quelli di Marco (182 falsi positivi, 7 decisioni bloccate dallo stop).
+- **Attenzione per la demo**: la macchina di Guido non rispetta D-38 (Python 3.11.9 invece di \u2265 3.12; scipy 1.17.1, numpy 2.4.6, shap 0.51 invece di 1.18.1, 2.5.3, 0.52) e qui il modello d\u00e0 183 e 8. Fare la demo sulla macchina allineata a `requirements.txt`, oppure aggiornare questa e rieseguire `train_baseline.py`.
 
 ## Allineamento OSPO
 

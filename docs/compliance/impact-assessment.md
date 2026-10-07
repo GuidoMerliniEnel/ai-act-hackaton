@@ -5,7 +5,7 @@
 | ID | Risk                                                                                   | Severity | Evidence                                                       |
 | -- | -------------------------------------------------------------------------------------- | -------- | -------------------------------------------------------------- |
 | R1 | Missed failure on a critical user (hospital, infrastructure)                          | Critical | 3 FN on critical and 6 on high users with a single 0.30 threshold |
-| R2 | Historical label bias: failures under-reported in the South                           | High     | South/Islands same profile, 0.24 vs 0.45 recorded; South calibration gap 0.177 |
+| R2 | Historical label bias: failures under-reported in the South                           | High     | South/Islands same profile, 0.24 vs 0.45 recorded; South calibration gap 0.178 |
 | R3 | Area acting as a proxy, causing over-selection in South and Islands                   | Medium   | Selection gap 0.64 between areas; FPR Islands 0.67 with area in the model |
 | R4 | Lower recall in North and Centre                                                      | Medium   | Recall 0.54 (Centre) with area in the model                    |
 | R5 | Automation bias: operators approve without reading                                     | High     | General risk of approval queues                                |
@@ -20,7 +20,7 @@
 | ---- | ------------------------------------------------------------------------------------------ | --------------------------------------------------- |
 | R1   | Threshold 0.20 for high/critical users; HIC for every critical user                        | FN critical/high 3/6 → 1/1                          |
 | R2   | Calibration alert > 0.10 promotes the area from HOTL to HITL                               | South promoted; no auto-execution in the South      |
-| R3   | `area_geografica` removed from the model                                                   | AUC 0.862 → 0.868; FPR Islands 0.667 → 0.622        |
+| R3   | `area_geografica` removed from the model                                                   | AUC 0.862 → 0.868; FPR Islands 0.689 → 0.622        |
 | R4   | Removing area plus differentiated thresholds                                               | Recall gap 0.411 → 0.216; Centre 0.542 → 0.750     |
 | R5   | Justification ≥ 15 chars, duplicates rejected, rubber-stamping index A4, review time A3    | Measured live in the KPI tab                        |
 | R6   | Single execution point with assertions; stop also freezes the existing queue               | Tests T1, T3 passed                                 |
@@ -29,7 +29,7 @@
 | R9   | Drift alert: 2 consecutive weeks below reference − 0.10 disables HOTL everywhere           | Triggers in simulation; not on current data         |
 
 **Cost of the mitigation package:** 30 more unnecessary inspections
-(153 → 183) for 5 fewer missed failures (26 → 21), consistent with the
+(152 → 182) for 5 fewer missed failures (26 → 21), consistent with the
 declared 10:1 cost ratio.
 
 ## What we have NOT solved
@@ -37,7 +37,7 @@ declared 10:1 cost ratio.
 !!! danger "Open issues"
     1. **The label bias in the South is managed, not removed.** Removing
        the area made the South calibration gap slightly worse
-       (0.159 → 0.177), because age and maintenance history act as proxies.
+       (0.158 → 0.178), because age and maintenance history act as proxies.
        Only a field check of recording practices can confirm or rule out
        under-reporting.
     2. **We cannot tell under-reporting from different recording processes.**

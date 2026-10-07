@@ -7,7 +7,7 @@ Metriche di performance e fairness disaggregate per sottogruppo.
 Un modello "accurato in media" puo' nascondere disparita' gravi:
 questo modulo serve a renderle visibili nella dashboard.
 
-TODO per il team:
+DECISIONI del team:
   1. DECISIONE: metrica principale = gap di recall/FNR (il danno peggiore e' il guasto non previsto);
      la demographic parity resta solo come segnale di variabile proxy.
   2. DECISIONE: soglie 0.15 sul gap di recall e 0.10 sul gap di calibrazione; la seconda

@@ -123,16 +123,23 @@ _ok, _n = audit.verifica_catena()
 st.sidebar.divider()
 st.sidebar.caption(f"Audit trail: {'✅ catena integra' if _ok else '❌ CATENA COMPROMESSA'} · {_n} record")
 
-@st.cache_data(show_spinner=False)
-def _fattori_asset(asset_id: str):
-    """Fattori SHAP e scenario "e se..." per un asset. In cache: SHAP e' costoso."""
+@st.cache_resource(show_spinner=False)
+def _risorse_modello():
+    """Modello, feature e TreeExplainer caricati una volta per processo."""
     import joblib
+    import shap
     modello = joblib.load("modello.joblib")
     df = carica_csv("energuard_dataset.csv")
     X = prepara_feature(df)
+    return modello, df, X, shap.TreeExplainer(modello), df[list(ETICHETTE)].median().to_dict()
+
+
+@st.cache_data(show_spinner=False)
+def _fattori_asset(asset_id: str):
+    """Fattori SHAP e scenario "e se..." per un asset. In cache: SHAP e' costoso."""
+    modello, df, X, explainer, medie = _risorse_modello()
     x = X.loc[df["asset_id"] == asset_id].iloc[0]
-    fattori = estrai_fattori(modello, x, list(X.columns))
-    medie = df[list(ETICHETTE)].median().to_dict()
+    fattori = estrai_fattori(modello, x, list(X.columns), explainer=explainer)
     return fattori, scenario_media(modello, x, list(X.columns), fattori, medie)
 
 
@@ -169,8 +176,13 @@ with tab_coda:
     analisi = [_fattori_asset(r.asset_id) for r in visibili]
     fattori = [a[0] for a in analisi]
     scenari = dict(zip([r.id for r in visibili], [a[1] for a in analisi]))
-    with ThreadPoolExecutor(max_workers=10) as pool:
-        spiegazioni = dict(zip([r.id for r in visibili], pool.map(spiegazione_per, visibili, fattori)))
+    # DECISIONE: spiegazione generata una sola volta per decisione; ogni click non rifa' le chiamate LLM
+    spiegazioni = st.session_state.setdefault("spiegazioni", {})
+    mancanti = [(r, f) for r, f in zip(visibili, fattori) if r.id not in spiegazioni]
+    if mancanti:
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            nuove = pool.map(spiegazione_per, *zip(*mancanti))
+            spiegazioni.update(zip([r.id for r, _ in mancanti], nuove))
     for r in visibili:
         with st.expander(
                 f"{'🔴' if r.livello.value == 'HIC' else '🟠'} {r.asset_id} · "
