@@ -78,13 +78,109 @@ streamlit run app.py       # opens the dashboard at http://localhost:8501
 python test_llm.py         # checks the explanation engine (template and LLM)
 ```
 
-### Documentation site
+Stop the dashboard with <kbd>Ctrl</kbd>+<kbd>C</kbd>. The review queue is
+held in memory and resets on restart; only `audit_trail.jsonl` persists.
+
+## Documentation Site (Zensical)
+
+The documentation in `docs/` is built with [Zensical](https://zensical.org/),
+a static site generator from the creators of Material for MkDocs. The
+configuration and theme follow the
+[Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO) site (Enel Design System:
+magenta primary, ocean blue accent, Inter font, light and dark mode).
+
+### Install
 
 ```bash
-pip install -r requirements-docs.txt
-zensical serve             # preview at http://localhost:8000
-zensical build --clean     # static site in site/
+source .venv/bin/activate
+pip install -r requirements-docs.txt     # pinned zensical version
+zensical --version
 ```
+
+### Preview locally
+
+```bash
+zensical serve                  # http://localhost:8000, reloads on save
+zensical serve -o               # also opens the browser
+zensical serve -a localhost:8080  # different address or port
+```
+
+### Build the static HTML
+
+```bash
+zensical build --clean          # --clean drops the build cache first
+```
+
+The output goes to `site/` (git-ignored). Open `site/index.html` or serve
+the folder with any static web server.
+
+### Add or edit a page
+
+1. Create or edit a Markdown file under `docs/`, e.g.
+   `docs/compliance/new-page.md`.
+2. Register it in the `nav` list at the top of `zensical.toml`:
+
+    ```toml
+    { Compliance = [
+      "compliance/index.md",
+      { "New Page" = "compliance/new-page.md" },
+    ] },
+    ```
+
+    Pages missing from `nav` are **silently dropped** from the build.
+3. Run `zensical serve` and check the page, then `zensical build --clean`
+   before opening a pull request.
+
+### Writing features
+
+Enabled extensions: admonitions, tabs, task lists, footnotes, tables,
+emoji, code highlighting with copy button, and Mermaid diagrams.
+
+````markdown
+!!! warning "Declared limit"
+    Text of the note.
+
+```mermaid
+flowchart LR
+    A[Prediction] --> B{Routing} --> C[Human review]
+```
+````
+
+Custom admonitions `!!! do` and `!!! dont`, and the oversight-level badges
+`<span class="level hic">HIC</span>`, `hitl`, `hotl`, are defined in
+`docs/stylesheets/extra.css`.
+
+### Site layout
+
+```text
+zensical.toml                 # site config: name, URL, nav, theme, extensions
+overrides/main.html           # template overrides (extends base.html)
+docs/
+├── index.md                  # home page with cards
+├── about/                    # scenario, hackathon, OP36 mapping
+├── getting-started/          # installation, dashboard usage, LLM setup
+├── architecture/             # overview, modules, dataset
+├── compliance/               # AI Act, model card, impact assessment, oversight declaration
+├── quality/                  # KPIs A1–A6, verification tests T1–T6
+├── decisions/                # decision log D-01..D-30 (English)
+├── project/                  # contributing, security, license
+├── stylesheets/extra.css     # Enel Design System tokens (--enel-*)
+└── assets/images/            # logo.svg, favicon.svg
+```
+
+### Theme
+
+Change colors only through the `--enel-*` tokens in
+`docs/stylesheets/extra.css`. Light scheme is `enel`, dark scheme is
+`slate`, and `primary`/`accent` are `custom` in `zensical.toml`. See
+`.github/skills/enel-design-system/SKILL.md`.
+
+### Publish to GitHub Pages
+
+`.github/workflows/docs.yml` builds and deploys the site on every push to
+`main` (or manually from **Actions → Documentation → Run workflow**).
+One-time setup: **Settings → Pages → Source: GitHub Actions**. The site is
+served at the `site_url` set in `zensical.toml`.
 
 ## Project Structure
 
