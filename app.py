@@ -66,7 +66,7 @@ def bootstrap():
 om, audit, pred, spiegatore = bootstrap()
 
 st.title("EnerGuard · Dashboard di Supervisione Umana")
-# DECISIONE: lo stop attivo deve essere impossibile da ignorare, non solo una voce in sidebar
+# DECISIONE (D-39): lo stop attivo deve essere impossibile da ignorare, non solo una voce in sidebar
 if om.stop_attivi:
     n_ferme = sum(r.stato == StatoDecisione.BLOCCATA_STOP for r in om.coda)
     st.error(f"⛔ **EMERGENCY STOP ATTIVO** su {', '.join(sorted(om.stop_attivi))} · "

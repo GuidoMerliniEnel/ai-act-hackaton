@@ -56,6 +56,7 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 
 - **Riquadro "In parole semplici"** a regole fisse (D-31..D-34): semaforo, "circa N su 10", cosa fare, avvertenze e scenario "e se..." calcolato rifacendo la previsione con il fattore principale nella media.
 - **Dettagli per l'esperto**: fattori SHAP tradotti da un LLM Azure (`gpt-5.6-luna`) con guardrail e fallback automatico al template (D-20, confermata dal gruppo).
+- **Casi simili** (D-41): nella card, 3 asset storici dello stesso tipo con sensori simili e il loro esito registrato; avviso che lo storico del Sud può sottostimare i guasti.
 - **Perché l'LLM**: testo più naturale nei dettagli. **Perché è accettabile**: l'LLM non decide e non calcola; i guardrail scartano numeri inventati, gergo tecnico e risposte che non citano il fattore principale; ogni spiegazione dichiara la fonte; con rete assente o chiave errata la card resta spiegata. La parte che deve capire chiunque non usa l'LLM.
 
 ## Limiti noti

@@ -10,7 +10,7 @@ These KPIs are computed by `OversightManager.kpi()`, `BiasDetector` and
 | -- | ---------------------------------- | ---------------------------------------------------------- | ------------- | ------------ |
 | A1 | Improper auto-execution            | HIC/HITL executed without human review                     | **0**         | Any value > 0 |
 | A2 | Human override rate                | (rejected + modified) / reviewed                           | 5% – 40%      | ~0% rubber-stamping; > 60% model unusable |
-| A3 | Median review time                 | median(closed − opened)                                    | 30 s – 5 min  | < 10 s systematic |
+| A3 | Median review time                 | median(closed − opened)                                    | 30 s – 5 min  | < 10 s systematic; monitored per reviewer ([D-40](../decisions/index.md#d-40)) |
 | A4 | Rubber-stamping index              | % reviews with justification < 30 chars or duplicate       | < 10%         | > 30% |
 | A5 | SLA escalation rate                | expired / HITL decisions                                   | < 15%         | Human queue undersized |
 | A6 | Declared routing coverage          | % decisions whose level matches the declared matrix        | **100%**      | Code does not do what the document promises |

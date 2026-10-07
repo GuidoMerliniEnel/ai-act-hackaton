@@ -23,7 +23,9 @@ Stop scopes: `GLOBALE`, one area (`area:Sud`), one asset type
 Each card shows the asset, the recommended action, the oversight level,
 the failure probability and the confidence. It also shows an explanation in
 plain language with the three main factors and their direction
-([D-23](../decisions/index.md#d-23)).
+([D-23](../decisions/index.md#d-23)), and three similar historical assets
+of the same type with their recorded outcome
+([D-41](../decisions/index.md#d-41)).
 
 Actions: **Approve**, **Modify**, **Reject**, **Escalation**. Each needs a
 justification of at least 15 characters. Copy-pasted justifications are
@@ -63,5 +65,11 @@ period, and export it to CSV or JSONL ([D-29](../decisions/index.md#d-29)).
 
 ### Oversight KPIs
 
-KPIs A1–A6 with targets and the distribution of levels. See
+KPIs A1–A6 with targets and the distribution of levels, plus per-reviewer
+statistics with alerts for very fast reviews, approve-everything patterns
+and short justifications ([D-40](../decisions/index.md#d-40)). See
 [Oversight KPIs](../quality/kpis.md).
+
+While a stop is active, a red banner at the top of every screen shows its
+scope and the number of blocked decisions
+([D-39](../decisions/index.md#d-39)).

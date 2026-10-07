@@ -484,7 +484,7 @@ def guida_semplice(rec: dict, fattori: list[Fattore], scenario: Optional[dict] =
 
 
 def casi_simili(df, asset_id: str, k: int = 3):
-    """DECISIONE: i k asset dello stesso tipo piu' vicini sui sensori (scala standardizzata), con l'esito registrato."""
+    """DECISIONE (D-41): i k asset dello stesso tipo piu' vicini sui sensori (scala standardizzata), con l'esito registrato."""
     import numpy as np
     col = list(ETICHETTE)
     riga = df.loc[df["asset_id"] == asset_id].iloc[0]

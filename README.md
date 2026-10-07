@@ -117,6 +117,14 @@ python test_llm.py              # explanation engine: template and LLM
 - **"What if" scenario:** the model re-predicts with the main factor set
   back to the fleet median and says whether the intervention would still
   be needed. This is a contrastive explanation.
+- **Rubric level 4 (D-39..D-42):**
+  - A red banner at the top of every screen while a stop is active.
+  - Per-reviewer statistics with alerts (under 10 s between decisions,
+    approves everything, short justifications).
+  - Three similar historical assets in each card, with their recorded
+    outcome.
+  - Reviewers differentiated by competence are declared as a limit, not
+    implemented.
 - **`prova_test_giuria.py`:** repeatable rehearsal of tests T1–T6 on
   temporary logs. Result: 9/9.
 
