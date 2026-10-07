@@ -323,7 +323,7 @@ class SpiegatoreLLM:
             # I modelli recenti su Azure (famiglia GPT-5) usano "max_completion_tokens"
             # al posto di "max_tokens" e accettano solo la temperature di default (1):
             # inviare "temperature" diversa o "max_tokens" causa HTTP 400.
-            body["max_completion_tokens"] = 400
+            body["max_completion_tokens"] = 2000  # DECISIONE: con 400 il ragionamento interno di GPT-5 esauriva i token e la risposta era vuota
         else:
             body["temperature"] = 0.2
             body["max_tokens"] = 400
