@@ -348,7 +348,7 @@ class OversightManager:
         return out
 
     def per_revisore(self, min_revisioni: int = 3) -> list[dict]:
-        """DECISIONE: tempo tra due revisioni consecutive dello stesso operatore come proxy del tempo di lettura."""
+        """DECISIONE (D-40): tempo tra due revisioni consecutive dello stesso operatore come proxy del tempo di lettura."""
         rev = sorted([r for r in self.coda if r.revisore and r.chiusa_il], key=lambda r: r.chiusa_il)
         out = []
         for chi in sorted({r.revisore for r in rev}):
