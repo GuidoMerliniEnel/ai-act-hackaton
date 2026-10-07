@@ -15,6 +15,9 @@ def carica_csv(percorso: str) -> pd.DataFrame:
 # DECISIONE: area_geografica fuori dal modello (proxy di label bias), resta nei dati per monitoraggio e stop
 ESCLUSE_DAL_MODELLO = ["asset_id", "guasto_entro_30gg", "area_geografica"]
 
+# DECISIONE: costo FN ~10x FP; per utenze alte/critiche 0.20 perche' l'HIC protegge solo cio' che supera la soglia
+SOGLIE_PER_CRITICITA = {"standard": 0.30, "alta": 0.20, "critica": 0.20}
+
 
 def prepara_feature(df: pd.DataFrame) -> pd.DataFrame:
     """Unico punto che costruisce le feature: training, dashboard e test devono coincidere."""

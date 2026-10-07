@@ -58,6 +58,15 @@ AZIONI_TESTO = {
     "riduci_carico": "di ridurre il carico",
     "ispezione_urgente": "un'ispezione urgente",
 }
+AZIONI_SEMPLICI = {
+    "nessuna_azione": "non fare niente per ora",
+    "ispezione_routine": "mandare qualcuno a dare un'occhiata nel prossimo giro",
+    "programma_manutenzione": "mettere in calendario una manutenzione",
+    "riduci_carico": "abbassare il carico su questo impianto",
+    "ispezione_urgente": "mandare subito una squadra a controllare",
+}
+NOMI_SEMPLICI = {"trasformatore": "Questo trasformatore", "linea_AT": "Questa linea ad alta tensione",
+                 "cabina_primaria": "Questa cabina primaria", "turbina_eolica": "Questa turbina eolica"}
 
 
 @dataclass
@@ -395,6 +404,81 @@ class SpiegatoreLLM:
         for parola in ("shap", "feature", "coefficient"):
             if parola in testo:
                 raise ValueError(f"gergo tecnico nella risposta: {parola}")
+
+
+# ---------------------------------------------------------------------------
+# Guida in parole semplici (deterministica): per l'operatore non esperto e per il test T4
+# ---------------------------------------------------------------------------
+def scenario_media(modello, riga, feature_names: list[str], fattori: list[Fattore], medie: dict) -> Optional[dict]:
+    """Rifa' la previsione con il fattore di rischio principale riportato alla mediana della flotta."""
+    import numpy as np
+    f = next((f for f in fattori if f.contributo > 0 and f.nome in medie), None)
+    if f is None:
+        return None
+    x = np.asarray(riga, dtype=float).copy()
+    x[feature_names.index(f.nome)] = medie[f.nome]
+    import pandas as pd
+    p = float(modello.predict_proba(pd.DataFrame([x], columns=feature_names))[0, 1])
+    return {"etichetta": f.etichetta, "unita": f.unita, "valore": f.valore,
+            "media": medie[f.nome], "prob_nuova": p}
+
+
+def _su_dieci(p: float) -> int:
+    return int(round(p * 10))
+
+
+def _numero(v: float):
+    return int(v) if float(v).is_integer() else round(v, 1)
+
+
+def guida_semplice(rec: dict, fattori: list[Fattore], scenario: Optional[dict] = None) -> dict:
+    """DECISIONE: frasi a regole fisse, niente LLM: istantanee, ripetibili, nessun numero inventato."""
+    soggetto = NOMI_SEMPLICI.get(rec["tipo_asset"], "Questo impianto")
+    n = _su_dieci(rec["prob_guasto"])
+    azione = AZIONI_SEMPLICI.get(rec["azione_proposta"], rec["azione_proposta"])
+    incerto = rec["confidenza"] < rec.get("soglia_confidenza", 0.80)
+    if rec.get("livello") == "HIC":
+        semaforo = "🔴 Decidi tu: il sistema qui non fa niente da solo"
+        frase = (f"{soggetto} alimenta utenze critiche, ad esempio un ospedale. Su 10 impianti come questo, "
+                 f"circa {n} rischiano un guasto entro un mese. Il sistema suggerisce di {azione}, ma la decisione è solo tua.")
+    elif incerto:
+        semaforo = "🟡 Il sistema non è sicuro"
+        frase = (f"Su 10 impianti come questo, circa {n} potrebbero guastarsi entro un mese. "
+                 f"Il sistema propone di {azione}, ma ha dei dubbi: è poco più di un testa o croce.")
+    else:
+        semaforo = "🟠 Serve il tuo ok"
+        frase = (f"Su 10 impianti come questo, circa {n} si guastano entro un mese. "
+                 f"Il sistema propone di {azione} e aspetta la tua approvazione.")
+    f1 = next((f for f in fattori if f.contributo > 0), fattori[0] if fattori else None)
+    if f1:
+        frase += f" Il motivo principale: {f1.etichetta} ({_numero(f1.valore)} {f1.unita}, {f1.giudizio})."
+
+    cosa_fare = ["Guarda il motivo principale: ti sembra credibile per questo impianto?",
+                 "Sai qualcosa che il sistema non sa (lavori appena fatti, guasti già segnalati, meteo)? Usalo."]
+    if rec.get("livello") == "HIC":
+        cosa_fare.append("Prima di agire senti chi gestisce l'utenza critica.")
+    if incerto:
+        cosa_fare.append("Nel dubbio non approvare a occhi chiusi: chiedi un sopralluogo o fai escalation.")
+    cosa_fare.append("Scrivi in una frase perché decidi così: serve a chi verrà dopo di te.")
+
+    attenzione = None
+    if rec.get("area_promossa"):
+        attenzione = (f"Nell'area {rec['area_geografica']} i guasti del passato potrebbero essere stati "
+                      "registrati male: non fidarti solo del numero.")
+
+    se_cambiasse = None
+    if scenario and scenario["prob_nuova"] < rec["prob_guasto"]:
+        m = _numero(scenario["media"])
+        nuovo = _su_dieci(scenario["prob_nuova"])
+        quanto = f"scenderebbe a circa {nuovo} su 10" if nuovo < n else "scenderebbe di poco"
+        if scenario["prob_nuova"] < rec.get("soglia_intervento", 0.30):
+            esito = "e il sistema non chiederebbe di intervenire"
+        else:
+            esito = "ma il sistema chiederebbe comunque un controllo: il rischio non dipende da una cosa sola"
+        se_cambiasse = (f"E se {scenario['etichetta']} fosse nella media degli impianti ({m} {scenario['unita']}) "
+                        f"invece di {_numero(scenario['valore'])}? Il rischio {quanto}, {esito}.")
+    return {"semaforo": semaforo, "frase": frase, "cosa_fare": cosa_fare,
+            "attenzione": attenzione, "se_cambiasse": se_cambiasse}
 
 
 # ---------------------------------------------------------------------------

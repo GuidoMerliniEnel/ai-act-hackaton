@@ -16,10 +16,7 @@ from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.model_selection import train_test_split
 
 from bias_detector import BiasDetector
-from utils_io import carica_csv, prepara_feature
-
-# DECISIONE: costo FN ~10x FP; per utenze alte/critiche 0.20 perche' l'HIC protegge solo cio' che supera la soglia
-SOGLIE = {"standard": 0.30, "alta": 0.20, "critica": 0.20}
+from utils_io import SOGLIE_PER_CRITICITA as SOGLIE, carica_csv, prepara_feature
 
 df = carica_csv("energuard_dataset.csv")
 y = df["guasto_entro_30gg"]

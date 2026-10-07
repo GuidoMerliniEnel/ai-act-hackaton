@@ -36,40 +36,45 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 
 ### Monitoraggio e spiegabilità (Tier 3)
 
-| ID   | Decisione                                                                               | Razionale                                                                                                                       | Origine                 | Dove                                  |
-| ---- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------- |
-| D-19 | Allerta di calibrazione > 0.10 che promuove a HITL le decisioni HOTL dell'area          | Il bias nelle etichette non si corregge nel modello: lo gestisce la supervisione umana. Oggi scatta solo per il Sud (gap 0.177) | Gruppo                  | `bias_detector`, `imposta_promozioni` |
-| D-20 | Spiegazioni con LLM Azure, guardrail e fallback al template; limite risposta 2000 token | Più leggibili per l'operatore; con 400 token la risposta era vuota. Da confermare nel gruppo e motivare nella model card        | Tecnica (da confermare) | `explainer.py`                        |
-| D-21 | Soglie "sopra la norma" / "molto sopra" = 75° e 90° percentile della flotta | Con le soglie del kit il 68% degli asset risultava "sopra la norma" per giorni dall'ultima manutenzione: un giudizio che vale per tutti non informa | Tecnica | `explainer.ETICHETTE` |
-| D-22 | Nella spiegazione prima i fattori che aumentano il rischio | Il "perché" deve spiegare la raccomandazione: prima il fattore principale poteva ridurre il rischio. Ora 10 card su 10 partono da un fattore di rischio; incoerenze giudizio/direzione 3 su 30 | Tecnica | `estrai_fattori` |
-| D-23 | I tre fattori elencati sotto ogni spiegazione, con la loro direzione | Anche se l'LLM riassume, l'operatore vede sempre i tre fattori (KPI B1, test T4) | Tecnica | `app.py` card |
-| D-24 | Spiegazioni delle card visibili generate in parallelo; log protetto da lock | Primo caricamento da circa 30 s a 5 s. Senza lock, scritture concorrenti romperebbero la catena di hash | Tecnica | `app.py`, `audit_logger.log` |
-| D-25 | Matrice colorata con il livello della matrice dichiarata, soglie tratteggiate e conteggi | L'operatore vede a colpo d'occhio dove decide l'AI; il colore viene dalla stessa regola usata dal codice, non da un disegno a parte | Tecnica | `app.py` scheda Matrice |
-| D-26 | Drift su 12 "settimane" simulate (blocchi consecutivi del test set): accuracy, recall, confidenza media | Il dataset non ha date; la guida chiede un drift simulato. Limite dichiarato | Kit + tecnica | `drift_settimanale` |
-| D-27 | Allerta drift se l'accuracy resta sotto riferimento − 0.10 per 2 settimane consecutive; se scatta, nessuna auto-esecuzione in nessuna area | Una settimana sola è rumore (oscillazione osservata ±0.08); due di fila sono un segnale. Sui dati attuali non scatta | Tecnica | `allerta_drift`, bootstrap |
-| D-28 | Allerta override se un'area supera il doppio del tasso medio, con almeno 3 revisioni | Esempio di segnale osservabile dal canvas; il minimo evita allerte su 1-2 casi | Gruppo (canvas) | `override_per_area` |
-| D-29 | Audit: ricostruzione di una decisione per asset (chi, cosa, quando, perché, AI approvata o corretta), log filtrabile per asset, attore e periodo, export CSV e JSONL | Test T6 e KPI D3: meno di 60 s, senza aprire il file | Tecnica | `app.py` scheda Audit |
-| D-30 | Integrità della catena sempre visibile in sidebar | La manomissione deve essere evidente in ogni schermata, non solo nella scheda Audit | Tecnica | `app.py` sidebar |
+| ID   | Decisione                                                                                                                                                            | Razionale                                                                                                                                                                                      | Origine                 | Dove                                  |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------- |
+| D-19 | Allerta di calibrazione > 0.10 che promuove a HITL le decisioni HOTL dell'area                                                                                       | Il bias nelle etichette non si corregge nel modello: lo gestisce la supervisione umana. Oggi scatta solo per il Sud (gap 0.177)                                                                | Gruppo                  | `bias_detector`, `imposta_promozioni` |
+| D-20 | Spiegazioni con LLM Azure, guardrail e fallback al template; limite risposta 2000 token                                                                              | Più leggibili per l'operatore; con 400 token la risposta era vuota. Da confermare nel gruppo e motivare nella model card                                                                       | Tecnica (da confermare) | `explainer.py`                        |
+| D-21 | Soglie "sopra la norma" / "molto sopra" = 75° e 90° percentile della flotta                                                                                          | Con le soglie del kit il 68% degli asset risultava "sopra la norma" per giorni dall'ultima manutenzione: un giudizio che vale per tutti non informa                                            | Tecnica                 | `explainer.ETICHETTE`                 |
+| D-22 | Nella spiegazione prima i fattori che aumentano il rischio                                                                                                           | Il "perché" deve spiegare la raccomandazione: prima il fattore principale poteva ridurre il rischio. Ora 10 card su 10 partono da un fattore di rischio; incoerenze giudizio/direzione 3 su 30 | Tecnica                 | `estrai_fattori`                      |
+| D-23 | I tre fattori elencati sotto ogni spiegazione, con la loro direzione                                                                                                 | Anche se l'LLM riassume, l'operatore vede sempre i tre fattori (KPI B1, test T4)                                                                                                               | Tecnica                 | `app.py` card                         |
+| D-24 | Spiegazioni delle card visibili generate in parallelo; log protetto da lock                                                                                          | Primo caricamento da circa 30 s a 5 s. Senza lock, scritture concorrenti romperebbero la catena di hash                                                                                        | Tecnica                 | `app.py`, `audit_logger.log`          |
+| D-25 | Matrice colorata con il livello della matrice dichiarata, soglie tratteggiate e conteggi                                                                             | L'operatore vede a colpo d'occhio dove decide l'AI; il colore viene dalla stessa regola usata dal codice, non da un disegno a parte                                                            | Tecnica                 | `app.py` scheda Matrice               |
+| D-26 | Drift su 12 "settimane" simulate (blocchi consecutivi del test set): accuracy, recall, confidenza media                                                              | Il dataset non ha date; la guida chiede un drift simulato. Limite dichiarato                                                                                                                   | Kit + tecnica           | `drift_settimanale`                   |
+| D-27 | Allerta drift se l'accuracy resta sotto riferimento − 0.10 per 2 settimane consecutive; se scatta, nessuna auto-esecuzione in nessuna area                           | Una settimana sola è rumore (oscillazione osservata ±0.08); due di fila sono un segnale. Sui dati attuali non scatta                                                                           | Tecnica                 | `allerta_drift`, bootstrap            |
+| D-28 | Allerta override se un'area supera il doppio del tasso medio, con almeno 3 revisioni                                                                                 | Esempio di segnale osservabile dal canvas; il minimo evita allerte su 1-2 casi                                                                                                                 | Gruppo (canvas)         | `override_per_area`                   |
+| D-29 | Audit: ricostruzione di una decisione per asset (chi, cosa, quando, perché, AI approvata o corretta), log filtrabile per asset, attore e periodo, export CSV e JSONL | Test T6 e KPI D3: meno di 60 s, senza aprire il file                                                                                                                                           | Tecnica                 | `app.py` scheda Audit                 |
+| D-30 | Integrità della catena sempre visibile in sidebar                                                                                                                    | La manomissione deve essere evidente in ogni schermata, non solo nella scheda Audit                                                                                                            | Tecnica                 | `app.py` sidebar                      |
+| D-31 | Riquadro "In parole semplici" in cima a ogni card, per un operatore non esperto: semaforo, frase, cosa fare, avvertenze | Il test T4 lo fa un giurato non tecnico; un operatore stanco a fine turno deve capire in pochi secondi. I dettagli tecnici restano sotto | Gruppo | `explainer.guida_semplice`, `app.py` card |
+| D-32 | Probabilità detta come "circa N su 10"; azioni in linguaggio quotidiano ("mandare subito una squadra a controllare") | Una frequenza si capisce meglio di "P = 0.64"; il nome tecnico dell'azione resta nei dettagli | Tecnica | `guida_semplice`, `AZIONI_SEMPLICI` |
+| D-33 | Riquadro generato da regole fisse, non dall'LLM | Istantaneo, ripetibile, nessun numero inventato e nessuna dipendenza dalla rete: la parte che deve capire chiunque non può dipendere da un servizio esterno | Tecnica | `guida_semplice` |
+| D-34 | Scenario "e se...": il modello rifà la previsione con il fattore principale riportato alla mediana della flotta, e dice se l'intervento sarebbe ancora richiesto | Spiegazione contrastiva, livello 4 della rubrica: mostra che cosa dovrebbe cambiare perché cambi la raccomandazione. È calcolata, non scritta a mano | Tecnica | `explainer.scenario_media` |
 
 ## Cronologia git
 
 Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato originale e reintrodotte come commit separati; nel codice i TODO risolti sono sostituiti da commenti `DECISIONE:` con il razionale. `.env`, `modello.joblib`, `predizioni.csv` e `audit_trail.jsonl` sono ignorati.
 
-| Commit    | Contenuto                                                                  |
-| --------- | -------------------------------------------------------------------------- |
-| `2b69a86` | Baseline: starter kit originale                                            |
-| `9315609` | LLM: `max_completion_tokens` 400 → 2000                                    |
-| `2f0556a` | Tier 2: stop sulla coda esistente, ambiti combinati, escalation SLA        |
-| `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL             |
-| `4687e92` | Tracciamento: cronologia git                                               |
-| `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole                                   |
-| `79baf23` | Tier 1: metriche disaggregate e punti di discussione                       |
-| `7effb0a` | Tier 1: correzione ipotesi e decisioni del gruppo                          |
-| `ad8cfd0` | Mitigazione: area fuori dal modello, soglie per criticità                  |
-| `f580a5e` | Mitigazione: allerta di calibrazione con promozione a HITL                 |
-| `bbf3264` | Tier 2 chiuso e registro decisioni |
-| `2f738b2` | Tier 3: spiegazioni (D-21..D-24) |
-| (questo)  | Tier 3: matrice, drift, override per area, audit (D-25..D-30) |
+| Commit    | Contenuto                                                           |
+| --------- | ------------------------------------------------------------------- |
+| `2b69a86` | Baseline: starter kit originale                                     |
+| `9315609` | LLM: `max_completion_tokens` 400 → 2000                             |
+| `2f0556a` | Tier 2: stop sulla coda esistente, ambiti combinati, escalation SLA |
+| `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL      |
+| `4687e92` | Tracciamento: cronologia git                                        |
+| `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole                            |
+| `79baf23` | Tier 1: metriche disaggregate e punti di discussione                |
+| `7effb0a` | Tier 1: correzione ipotesi e decisioni del gruppo                   |
+| `ad8cfd0` | Mitigazione: area fuori dal modello, soglie per criticità           |
+| `f580a5e` | Mitigazione: allerta di calibrazione con promozione a HITL          |
+| `bbf3264` | Tier 2 chiuso e registro decisioni                                  |
+| `2f738b2` | Tier 3: spiegazioni (D-21..D-24)                                    |
+| `772495f` | Tier 3: matrice, drift, override per area, audit (D-25..D-30)       |
+| (questo)  | Card "In parole semplici" con scenario "e se..." (D-31..D-34)       |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -128,6 +133,7 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
   - Matrice sul test set: 60 HIC, 339 HITL, 321 HOTL.
   - Manomissione (T6): su una copia del log, cambiata la motivazione di un rifiuto alla riga 403; la verifica si ferma a 402 record. Log reale integro (474 record).
   - Dashboard riavviata: tutte le schede caricate senza errori.
+- **Card "In parole semplici"**: provata su tre casi (utenza critica, modello incerto, Sud) e poi nel browser su AST-01148 (cabina primaria critica del Sud): semaforo rosso, "circa 6 su 10", motivo principale, cinque passi, avviso sui dati del Sud, scenario "vibrazione nella media → circa 3 su 10, ma servirebbe comunque un controllo". Corretti in prova il genere grammaticale ("Questo linea AT") e lo scenario che diceva "scenderebbe a 2 su 10" partendo da 2 su 10.
 - Test automatici su log temporaneo: sblocco senza secondo operatore respinto, risottomissione sotto stop respinta, risottomissione unica (stato `RISOTTOMESSA`), motivazione fotocopia respinta anche con maiuscole e spazi diversi.
 
 ## Note e limiti noti

@@ -15,9 +15,10 @@ import streamlit as st
 from concurrent.futures import ThreadPoolExecutor
 
 from audit_logger import AuditLogger
-from explainer import ConfigLLM, crea_spiegatore, estrai_fattori
+from explainer import (ETICHETTE, ConfigLLM, crea_spiegatore, estrai_fattori,
+                       guida_semplice, scenario_media)
 from bias_detector import BiasDetector
-from utils_io import carica_csv, prepara_feature
+from utils_io import SOGLIE_PER_CRITICITA, carica_csv, prepara_feature
 from oversight_manager import (OversightManager, Raccomandazione,
                                StatoDecisione, AZIONI, proponi_azione)
 
@@ -116,22 +117,27 @@ st.sidebar.caption(f"Audit trail: {'✅ catena integra' if _ok else '❌ CATENA 
 
 @st.cache_data(show_spinner=False)
 def _fattori_asset(asset_id: str):
-    """Estrae i fattori SHAP per un asset. In cache: SHAP e' costoso."""
+    """Fattori SHAP e scenario "e se..." per un asset. In cache: SHAP e' costoso."""
     import joblib
     modello = joblib.load("modello.joblib")
     df = carica_csv("energuard_dataset.csv")
     X = prepara_feature(df)
     x = X.loc[df["asset_id"] == asset_id].iloc[0]
-    return estrai_fattori(modello, x, list(X.columns))
+    fattori = estrai_fattori(modello, x, list(X.columns))
+    medie = df[list(ETICHETTE)].median().to_dict()
+    return fattori, scenario_media(modello, x, list(X.columns), fattori, medie)
+
+
+def _rec(r):
+    return {"asset_id": r.asset_id, "tipo_asset": r.tipo_asset, "area_geografica": r.area_geografica,
+            "criticita_utenza": r.criticita_utenza, "prob_guasto": r.prob_guasto,
+            "confidenza": r.confidenza, "azione_proposta": r.azione_proposta,
+            "livello": getattr(r.livello, "value", None), "soglia_confidenza": om.soglia_conf}
 
 
 def spiegazione_per(r, fattori):
     """Spiegazione in linguaggio operativo per una raccomandazione in coda."""
-    rec = {"asset_id": r.asset_id, "tipo_asset": r.tipo_asset, "area_geografica": r.area_geografica,
-           "criticita_utenza": r.criticita_utenza, "prob_guasto": r.prob_guasto,
-           "confidenza": r.confidenza, "azione_proposta": r.azione_proposta,
-           "livello": getattr(r.livello, "value", None), "soglia_confidenza": om.soglia_conf}
-    return spiegatore.spiega(rec, fattori)
+    return spiegatore.spiega(_rec(r), fattori)
 
 
 tab_coda, tab_matrice, tab_bias, tab_audit, tab_kpi = st.tabs(
@@ -147,7 +153,9 @@ with tab_coda:
               delta_color="inverse")
     visibili = sorted(pendenti, key=lambda x: -x.prob_guasto)[:10]
     # DECISIONE: spiegazioni delle card visibili in parallelo, altrimenti ~3 s di LLM per card in sequenza
-    fattori = [_fattori_asset(r.asset_id) for r in visibili]
+    analisi = [_fattori_asset(r.asset_id) for r in visibili]
+    fattori = [a[0] for a in analisi]
+    scenari = dict(zip([r.id for r in visibili], [a[1] for a in analisi]))
     with ThreadPoolExecutor(max_workers=10) as pool:
         spiegazioni = dict(zip([r.id for r in visibili], pool.map(spiegazione_per, visibili, fattori)))
     for r in visibili:
@@ -158,6 +166,17 @@ with tab_coda:
             st.write(f"Azione proposta: **{r.azione_proposta}** · "
                      f"Utenza: {r.criticita_utenza}")
             sp = spiegazioni[r.id]
+            g = guida_semplice({**_rec(r), "area_promossa": r.area_geografica in om.aree_promosse,
+                                "soglia_intervento": SOGLIE_PER_CRITICITA[r.criticita_utenza]},
+                               sp.fattori, scenari[r.id])
+            st.info(f"**{g['semaforo']}**  \n{g['frase']}")
+            st.markdown("**Cosa fare**  \n" + "  \n".join(f"{i}. {p}" for i, p in enumerate(g["cosa_fare"], 1)))
+            if g["attenzione"]:
+                st.warning(g["attenzione"])
+            if g["se_cambiasse"]:
+                st.markdown(f"💡 *{g['se_cambiasse']}*")
+            st.divider()
+            st.caption("Dettagli per l'esperto")
             st.markdown(sp.testo)
             st.markdown("**Fattori principali:** " + " · ".join(
                 f"{f.descrizione()} ({'aumenta' if f.contributo >= 0 else 'riduce'} il rischio)"
