@@ -7,12 +7,12 @@ supervisione (HIC / HITL / HOTL) e la coda di approvazione umana.
 REGOLA D'ORO: nessuna azione con esito "IN_ATTESA" puo' essere eseguita.
 Il vostro sistema deve dimostrarlo (la giuria lo testera' dal vivo).
 
-TODO per il team:
-  1. Completare la matrice di routing in `route()` giustificando le soglie
-     nella Dichiarazione di Oversight (deliverable D3).
-  2. Implementare l'escalation: una decisione HITL non revisionata entro
-     `sla_minuti` deve cambiare stato, non essere eseguita in silenzio.
-  3. Collegare ogni transizione di stato all'AuditLogger.
+DECISIONI del team:
+  1. Matrice di routing in `route()` (D-08), con copia indipendente in `livello_dichiarato()`
+     per il KPI A6; le aree con allerta di calibrazione non vanno mai in HOTL (D-19).
+  2. Escalation: `controlla_sla()` porta a ESCALATION le decisioni oltre `sla_minuti` (D-12).
+  3. Ogni transizione di stato e' registrata nell'AuditLogger; `_esegui` e' l'unico punto
+     di esecuzione e rifiuta decisioni non approvate o sotto stop (D-10).
 """
 
 from dataclasses import dataclass, field
