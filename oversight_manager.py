@@ -18,6 +18,7 @@ TODO per il team:
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from statistics import median
 from typing import Optional
 import uuid
 
@@ -42,6 +43,17 @@ AZIONI = ["nessuna_azione", "ispezione_routine", "programma_manutenzione",
           "riduci_carico", "ispezione_urgente"]
 
 
+def proponi_azione(prob: float, criticita: str) -> str:
+    """DECISIONE: l'azione cresce col rischio; riduci_carico solo su utenza non standard (cosi' scatta HIC)."""
+    if prob >= 0.85:
+        return "riduci_carico" if criticita != "standard" else "ispezione_urgente"
+    if prob >= 0.60:
+        return "programma_manutenzione"
+    if prob >= 0.10:
+        return "ispezione_routine"
+    return "nessuna_azione"
+
+
 @dataclass
 class Raccomandazione:
     asset_id: str
@@ -58,6 +70,7 @@ class Raccomandazione:
     stato: StatoDecisione = StatoDecisione.IN_ATTESA
     revisore: Optional[str] = None
     motivazione: Optional[str] = None
+    chiusa_il: Optional[str] = None
     scaduta_sla: bool = False
 
 
@@ -69,6 +82,7 @@ class OversightManager:
         self.soglia_rischio = soglia_rischio_alto
         self.sla_minuti = sla_minuti
         self.coda: list[Raccomandazione] = []
+        self.storico_hotl: list[Raccomandazione] = []
         self.stop_attivi: set[str] = set()   # es. {"area:Sud", "tipo:linea_AT", "GLOBALE"}
 
     # ------------------------------------------------------------------
@@ -107,6 +121,7 @@ class OversightManager:
         if r.livello == LivelloSupervisione.HOTL:
             r.stato = StatoDecisione.AUTO_ESEGUITA
             self._esegui(r)
+            self.storico_hotl.append(r)
             self.audit.log("SISTEMA", "auto_esecuzione_HOTL", r)
         else:
             self.coda.append(r)
@@ -126,6 +141,8 @@ class OversightManager:
         if self._stop_applicabile(r):  # DECISIONE: sotto stop nessuna revisione, altrimenti T3 e' aggirabile
             raise ValueError(f"Decisione {decision_id} nell'ambito di uno stop attivo: non revisionabile.")
         r.stato, r.revisore, r.motivazione = esito, revisore, motivazione
+        if esito != StatoDecisione.ESCALATION:
+            r.chiusa_il = datetime.now().isoformat()
         if azione_modificata:
             r.azione_proposta = azione_modificata
         if esito in (StatoDecisione.APPROVATA, StatoDecisione.MODIFICATA):
@@ -215,16 +232,54 @@ class OversightManager:
     # KPI per il pannello di monitoraggio (vedi Indicatori di Qualita')
     # ------------------------------------------------------------------
     def kpi(self) -> dict:
-        chiuse = [r for r in self.coda if r.stato != StatoDecisione.IN_ATTESA]
-        override = [r for r in chiuse if r.stato in
+        tutte = self.coda + self.storico_hotl
+        supervisionate = [r for r in self.coda if r.livello in
+                          (LivelloSupervisione.HIC, LivelloSupervisione.HITL)]
+        # A1: HIC/HITL eseguite senza revisione umana (deve essere 0)
+        improprie = [r for r in supervisionate
+                     if r.stato == StatoDecisione.AUTO_ESEGUITA
+                     or (r.stato in (StatoDecisione.APPROVATA, StatoDecisione.MODIFICATA)
+                         and not r.revisore)]
+        revisionate = [r for r in self.coda if r.stato in
+                       (StatoDecisione.APPROVATA, StatoDecisione.MODIFICATA,
+                        StatoDecisione.RIFIUTATA)]
+        override = [r for r in revisionate if r.stato in
                     (StatoDecisione.RIFIUTATA, StatoDecisione.MODIFICATA)]
+        durate = [(datetime.fromisoformat(r.chiusa_il)
+                   - datetime.fromisoformat(r.creata_il)).total_seconds()
+                  for r in revisionate if r.chiusa_il]
+        viste, rubber = set(), 0
+        for r in sorted(revisionate, key=lambda x: x.chiusa_il or ""):
+            testo = (r.motivazione or "").strip().lower()
+            if len(testo) < 30 or testo in viste:  # DECISIONE: breve o fotocopia = proxy di rubber-stamping (A4)
+                rubber += 1
+            viste.add(testo)
+        hitl = [r for r in self.coda if r.livello == LivelloSupervisione.HITL]
+        coerenti = sum(1 for r in tutte if r.livello == self.livello_dichiarato(r))
+        pct = lambda n, d: round(n / d, 3) if d else None
         return {
             "in_attesa": sum(1 for r in self.coda if r.stato == StatoDecisione.IN_ATTESA),
-            "tasso_override": round(len(override) / len(chiuse), 3) if chiuse else None,
+            "A1_auto_esecuzione_impropria": len(improprie),
+            "A2_tasso_override": pct(len(override), len(revisionate)),
+            "A3_tempo_mediano_revisione_s": round(median(durate), 1) if durate else None,
+            "A4_indice_rubber_stamping": pct(rubber, len(revisionate)),
+            "A5_tasso_escalation_sla": pct(sum(r.scaduta_sla for r in hitl), len(hitl)),
+            "A6_copertura_routing": pct(coerenti, len(tutte)),
+            "distribuzione_livelli": {l.value: sum(1 for r in tutte if r.livello == l)
+                                      for l in LivelloSupervisione},
             "stop_attivi": sorted(self.stop_attivi),
-            # TODO: tempo medio di revisione, distribuzione HIC/HITL/HOTL,
-            #       % motivazioni sotto i 30 caratteri (proxy di rubber-stamping)
         }
+
+    def livello_dichiarato(self, r: Raccomandazione) -> LivelloSupervisione:
+        """Matrice D3 in forma tabellare, indipendente da route(): serve a misurare A6."""
+        if r.criticita_utenza == "critica":
+            return LivelloSupervisione.HIC
+        if r.azione_proposta == "riduci_carico" and r.criticita_utenza == "alta":
+            return LivelloSupervisione.HIC
+        leggera = r.azione_proposta in ("nessuna_azione", "ispezione_routine")
+        if r.prob_guasto < self.soglia_rischio and r.confidenza >= self.soglia_conf and leggera:
+            return LivelloSupervisione.HOTL
+        return LivelloSupervisione.HITL
 
 
 # NOTA SU "CONFIDENZA": per un classificatore binario una scelta semplice e

@@ -17,7 +17,7 @@ from explainer import ConfigLLM, crea_spiegatore, estrai_fattori
 from bias_detector import BiasDetector
 from utils_io import carica_csv
 from oversight_manager import (OversightManager, Raccomandazione,
-                               StatoDecisione, AZIONI)
+                               StatoDecisione, AZIONI, proponi_azione)
 
 st.set_page_config(page_title="EnerGuard | Supervisione Umana",
                    layout="wide", page_icon="⚡")
@@ -30,8 +30,10 @@ def bootstrap():
     om = OversightManager(audit)
     spiegatore = crea_spiegatore(audit)   # LLM se .env e' configurato, altrimenti template
     pred = carica_csv("predizioni.csv")
-    # Trasforma le prime N predizioni positive in raccomandazioni in coda
-    for _, riga in pred[pred["y_pred"] == 1].head(40).iterrows():
+    # DECISIONE: 40 positive + 8 a basso rischio, altrimenti il ramo HOTL non viene mai esercitato
+    campione = pd.concat([pred[pred["y_pred"] == 1].head(40),
+                          pred[pred["proba"] < 0.2].head(8)])
+    for _, riga in campione.iterrows():
         r = Raccomandazione(
             asset_id=riga["asset_id"],
             tipo_asset=riga["tipo_asset"],
@@ -39,7 +41,7 @@ def bootstrap():
             criticita_utenza=riga["criticita_utenza"],
             prob_guasto=round(float(riga["proba"]), 3),
             confidenza=round(float(riga["confidenza"]), 3),
-            azione_proposta="programma_manutenzione",  # TODO: derivare da regole
+            azione_proposta=proponi_azione(float(riga["proba"]), riga["criticita_utenza"]),
             spiegazione=[],  # TODO: riempire con SHAP/feature importance
         )
         om.sottometti(r)
@@ -99,8 +101,9 @@ def spiegazione_per(r):
     return spiegatore.spiega(rec, _fattori_asset(r.asset_id))
 
 
-tab_coda, tab_matrice, tab_bias, tab_audit = st.tabs(
-    ["Coda decisioni", "Matrice confidenza × rischio", "Bias & drift", "Audit trail"])
+tab_coda, tab_matrice, tab_bias, tab_audit, tab_kpi = st.tabs(
+    ["Coda decisioni", "Matrice confidenza × rischio", "Bias & drift", "Audit trail",
+     "KPI supervisione"])
 
 # ----------------------------------------------------------------------
 with tab_coda:
@@ -167,3 +170,25 @@ with tab_audit:
     st.metric("Integrità catena audit", "VERIFICATA" if ok else "COMPROMESSA",
               delta=f"{n} record")
     st.caption("TODO: tabella filtrabile del log per asset/operatore/periodo.")
+
+# ----------------------------------------------------------------------
+with tab_kpi:
+    k = om.kpi()
+    st.subheader("Efficacia della supervisione")
+    nd = lambda v: v if v is not None else "n/d"
+    c1, c2, c3 = st.columns(3)
+    c1.metric("A1 · Auto-esecuzioni improprie", k["A1_auto_esecuzione_impropria"],
+              delta="target 0", delta_color="off")
+    c2.metric("A2 · Tasso di override", nd(k["A2_tasso_override"]),
+              delta="target 5-40%", delta_color="off")
+    c3.metric("A3 · Tempo mediano revisione (s)", nd(k["A3_tempo_mediano_revisione_s"]),
+              delta="target 30-300 s", delta_color="off")
+    c4, c5, c6 = st.columns(3)
+    c4.metric("A4 · Rubber-stamping", nd(k["A4_indice_rubber_stamping"]),
+              delta="target < 10%", delta_color="off")
+    c5.metric("A5 · Escalation SLA", nd(k["A5_tasso_escalation_sla"]),
+              delta="target < 15%", delta_color="off")
+    c6.metric("A6 · Copertura routing", nd(k["A6_copertura_routing"]),
+              delta="target 100%", delta_color="off")
+    st.caption("Distribuzione livelli: " + " · ".join(
+        f"{l} {n}" for l, n in k["distribuzione_livelli"].items()))
