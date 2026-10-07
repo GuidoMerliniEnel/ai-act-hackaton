@@ -44,6 +44,12 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 | D-22 | Nella spiegazione prima i fattori che aumentano il rischio | Il "perché" deve spiegare la raccomandazione: prima il fattore principale poteva ridurre il rischio. Ora 10 card su 10 partono da un fattore di rischio; incoerenze giudizio/direzione 3 su 30 | Tecnica | `estrai_fattori` |
 | D-23 | I tre fattori elencati sotto ogni spiegazione, con la loro direzione | Anche se l'LLM riassume, l'operatore vede sempre i tre fattori (KPI B1, test T4) | Tecnica | `app.py` card |
 | D-24 | Spiegazioni delle card visibili generate in parallelo; log protetto da lock | Primo caricamento da circa 30 s a 5 s. Senza lock, scritture concorrenti romperebbero la catena di hash | Tecnica | `app.py`, `audit_logger.log` |
+| D-25 | Matrice colorata con il livello della matrice dichiarata, soglie tratteggiate e conteggi | L'operatore vede a colpo d'occhio dove decide l'AI; il colore viene dalla stessa regola usata dal codice, non da un disegno a parte | Tecnica | `app.py` scheda Matrice |
+| D-26 | Drift su 12 "settimane" simulate (blocchi consecutivi del test set): accuracy, recall, confidenza media | Il dataset non ha date; la guida chiede un drift simulato. Limite dichiarato | Kit + tecnica | `drift_settimanale` |
+| D-27 | Allerta drift se l'accuracy resta sotto riferimento − 0.10 per 2 settimane consecutive; se scatta, nessuna auto-esecuzione in nessuna area | Una settimana sola è rumore (oscillazione osservata ±0.08); due di fila sono un segnale. Sui dati attuali non scatta | Tecnica | `allerta_drift`, bootstrap |
+| D-28 | Allerta override se un'area supera il doppio del tasso medio, con almeno 3 revisioni | Esempio di segnale osservabile dal canvas; il minimo evita allerte su 1-2 casi | Gruppo (canvas) | `override_per_area` |
+| D-29 | Audit: ricostruzione di una decisione per asset (chi, cosa, quando, perché, AI approvata o corretta), log filtrabile per asset, attore e periodo, export CSV e JSONL | Test T6 e KPI D3: meno di 60 s, senza aprire il file | Tecnica | `app.py` scheda Audit |
+| D-30 | Integrità della catena sempre visibile in sidebar | La manomissione deve essere evidente in ogni schermata, non solo nella scheda Audit | Tecnica | `app.py` sidebar |
 
 ## Cronologia git
 
@@ -61,7 +67,9 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `7effb0a` | Tier 1: correzione ipotesi e decisioni del gruppo                          |
 | `ad8cfd0` | Mitigazione: area fuori dal modello, soglie per criticità                  |
 | `f580a5e` | Mitigazione: allerta di calibrazione con promozione a HITL                 |
-| (questo)  | Tier 2: conferma stop, sblocco a quattro occhi, risottomissione, fotocopie |
+| `bbf3264` | Tier 2 chiuso e registro decisioni |
+| `2f738b2` | Tier 3: spiegazioni (D-21..D-24) |
+| (questo)  | Tier 3: matrice, drift, override per area, audit (D-25..D-30) |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -113,6 +121,13 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
   - T3: stop su `area:Sud+tipo:linea_AT` con conferma; 8 decisioni bloccate (coda 42 → 34), restano attive la turbina del Sud e la linea AT del Nord; stato "STOP ATTIVI" in sidebar; evento nel log con motivazione e ID bloccati.
   - Sblocco: con lo stesso operatore come conferma respinto; con OP-007 accettato e registrato (`confermato_da`). Le 8 decisioni restano bloccate.
   - Catena di hash integra (415 record).
+- **Tier 3**:
+  - Spiegazioni sulle 10 card di testa: 10 su 10 dall'LLM, nessun fallback, 4.8 s in parallelo, catena integra.
+  - Drift: sui dati reali nessuna allerta (accuracy minima 0.633, soglia 0.617); due settimane simulate sotto soglia la fanno scattare, una sola no.
+  - Override: con il Nord al 100% contro una media del 36% scatta l'allerta.
+  - Matrice sul test set: 60 HIC, 339 HITL, 321 HOTL.
+  - Manomissione (T6): su una copia del log, cambiata la motivazione di un rifiuto alla riga 403; la verifica si ferma a 402 record. Log reale integro (474 record).
+  - Dashboard riavviata: tutte le schede caricate senza errori.
 - Test automatici su log temporaneo: sblocco senza secondo operatore respinto, risottomissione sotto stop respinta, risottomissione unica (stato `RISOTTOMESSA`), motivazione fotocopia respinta anche con maiuscole e spazi diversi.
 
 ## Note e limiti noti
@@ -120,6 +135,7 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - Con `confidenza = max(p, 1-p)` una decisione HOTL richiede $p \leq 0.2$: per questo il campione include casi a basso rischio.
 - Le decisioni bloccate da uno stop restano visibili in coda (sezione "Bloccate") e vanno risottomesse a mano (D-16).
 - Nel campione la probabilità massima è 0.79: `riduci_carico` (≥ 0.85) non viene mai proposto, quindi l'HIC scatta solo per utenze critiche.
+- La matrice mostra che con confidenza = $\max(p, 1-p)$ i punti stanno su una "V": la confidenza non aggiunge informazione alla probabilità. Un'alternativa (es. accordo tra gli alberi della foresta) sarebbe più informativa (limite di D-07).
 - ~~Primo caricamento lento (circa 30 s)~~: risolto con D-24, ora circa 5 s.
 - ~~Spiegazioni controintuitive~~: risolto con D-21 e D-22. Restano 3 casi su 30 in cui un valore "nella norma" alza leggermente il rischio: è coerente con il modello, la direzione è mostrata accanto al fattore.
 - `test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`: il suo `rec` non include `soglia_confidenza` (in `app.py` è passata correttamente).
@@ -226,6 +242,6 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 ## Da fare
 
 - Tier 2: completato.
-- Tier 3: matrice con soglie, drift, override per area, audit filtrabile. Spiegazioni: fatto (D-21..D-24).
+- Tier 3: completato.
 - Tier 1: completato.
 - Tier 4: model card, relazione d'impatto, Dichiarazione di oversight, prova dei 6 test.

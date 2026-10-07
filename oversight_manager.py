@@ -313,6 +313,23 @@ class OversightManager:
             "stop_attivi": sorted(self.stop_attivi),
         }
 
+    def override_per_area(self, min_revisioni: int = 3) -> list[dict]:
+        """DECISIONE: allerta se un'area ha override oltre il doppio della media (esempio del canvas), con almeno 3 revisioni."""
+        rev = [r for r in self.coda if r.stato in
+               (StatoDecisione.APPROVATA, StatoDecisione.MODIFICATA, StatoDecisione.RIFIUTATA)]
+        if not rev:
+            return []
+        ovr = lambda xs: sum(x.stato != StatoDecisione.APPROVATA for x in xs) / len(xs)
+        media = ovr(rev)
+        out = []
+        for area in sorted({r.area_geografica for r in rev}):
+            xs = [r for r in rev if r.area_geografica == area]
+            tasso = ovr(xs)
+            out.append({"area": area, "revisioni": len(xs), "tasso_override": round(tasso, 3),
+                        "media": round(media, 3),
+                        "allerta": len(xs) >= min_revisioni and media > 0 and tasso > 2 * media})
+        return out
+
     def livello_dichiarato(self, r: Raccomandazione) -> LivelloSupervisione:
         """Matrice D3 in forma tabellare, indipendente da route(): serve a misurare A6."""
         if r.criticita_utenza == "critica":

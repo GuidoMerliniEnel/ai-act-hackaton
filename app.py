@@ -9,6 +9,7 @@ documento "Indicatori di Qualita'"). Il come le realizzate e' scelta
 vostra: Streamlit e' solo il default comodo, potete usare React/Gradio.
 """
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 from concurrent.futures import ThreadPoolExecutor
@@ -33,8 +34,11 @@ def bootstrap():
     pred = carica_csv("predizioni.csv")
     bd = BiasDetector()
     cal = bd.calibrazione_per_gruppo(pred, "area_geografica")
-    om.imposta_promozioni(bd.gruppi_da_promuovere(cal, "area_geografica"),
-                          "gap di calibrazione oltre soglia (sospetto label bias)")
+    promosse = bd.gruppi_da_promuovere(cal, "area_geografica")
+    accuracy_rif = float((pred["y_pred"] == pred["y_true"]).mean())
+    if bd.allerta_drift(bd.drift_settimanale(pred), accuracy_rif):
+        promosse = sorted(pred["area_geografica"].unique())   # DECISIONE: drift = nessuna auto-esecuzione ovunque
+    om.imposta_promozioni(promosse, "allerta di calibrazione o di drift (vedi scheda Bias & drift)")
     # DECISIONE: 40 positive + 8 a basso rischio, altrimenti il ramo HOTL non viene mai esercitato
     campione = pd.concat([pred[pred["y_pred"] == 1].head(40),
                           pred[pred["proba"] < 0.2].head(8)])
@@ -106,6 +110,9 @@ if om.stop_attivi:
                 st.error(str(e))
 
 om.controlla_sla()
+_ok, _n = audit.verifica_catena()
+st.sidebar.divider()
+st.sidebar.caption(f"Audit trail: {'✅ catena integra' if _ok else '❌ CATENA COMPROMESSA'} · {_n} record")
 
 @st.cache_data(show_spinner=False)
 def _fattori_asset(asset_id: str):
@@ -198,11 +205,28 @@ with tab_coda:
 # ----------------------------------------------------------------------
 with tab_matrice:
     st.subheader("Dove decide l'AI e dove serve l'umano")
-    st.scatter_chart(pred.rename(columns={"proba": "rischio"}),
-                     x="confidenza", y="rischio", color="area_geografica")
-    st.caption("TODO: sovrapporre le soglie di routing HIC/HITL/HOTL e colorare "
-               "le zone. L'operatore deve capire A COLPO D'OCCHIO in quale "
-               "regime opera ogni decisione.")
+    # DECISIONE: colore = livello dalla matrice dichiarata (D3), cosi' il grafico mostra la stessa regola del codice
+    mat = pred.rename(columns={"proba": "rischio"}).copy()
+    mat["livello"] = [om.livello_dichiarato(Raccomandazione(
+        r.asset_id, r.tipo_asset, r.area_geografica, r.criticita_utenza, r.rischio, r.confidenza,
+        proponi_azione(r.rischio, r.criticita_utenza), [])).value for r in mat.itertuples()]
+    colori = alt.Scale(domain=["HIC", "HITL", "HOTL"], range=["#d62728", "#ff9f1c", "#2ec4b6"])
+    punti = alt.Chart(mat).mark_circle(size=45, opacity=0.75).encode(
+        x=alt.X("confidenza", scale=alt.Scale(domain=[0.5, 1]), title="Confidenza del modello"),
+        y=alt.Y("rischio", title="Probabilità di guasto a 30 giorni"),
+        color=alt.Color("livello", scale=colori, title="Supervisione"),
+        tooltip=["asset_id", "tipo_asset", "area_geografica", "criticita_utenza", "rischio", "livello"])
+    soglie = (alt.Chart(pd.DataFrame({"x": [om.soglia_conf]})).mark_rule(strokeDash=[6, 4]).encode(x="x")
+              + alt.Chart(pd.DataFrame({"y": [om.soglia_rischio]})).mark_rule(strokeDash=[6, 4]).encode(y="y"))
+    st.altair_chart(punti + soglie, width="stretch")
+    conteggi = mat["livello"].value_counts()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("HIC · decide solo l'umano", int(conteggi.get("HIC", 0)))
+    c2.metric("HITL · approvazione umana", int(conteggi.get("HITL", 0)))
+    c3.metric("HOTL · AI agisce, umano monitora", int(conteggi.get("HOTL", 0)))
+    st.caption(f"Linee tratteggiate: soglia di confidenza {om.soglia_conf} e di rischio {om.soglia_rischio}. "
+               "Il rosso (utenze critiche) è sempre HIC, ovunque cada. "
+               f"Aree senza auto-esecuzione per allerta: {', '.join(sorted(om.aree_promosse)) or 'nessuna'}.")
 
 # ----------------------------------------------------------------------
 with tab_bias:
@@ -219,15 +243,91 @@ with tab_bias:
         st.error(a)
     if om.aree_promosse:
         st.info(f"Aree promosse a HITL (nessuna auto-esecuzione): {', '.join(sorted(om.aree_promosse))}")
-    st.caption("TODO: aggiungere trend temporale (drift), tasso di override "
-               "umano per area.")
+
+    st.subheader("Drift di performance · 12 settimane simulate")
+    trend = bd.drift_settimanale(valut)
+    rif = float((valut["y_pred"] == valut["y_true"]).mean())
+    st.line_chart(trend.set_index("settimana")[["accuracy", "recall", "confidenza_media"]])
+    allerta = bd.allerta_drift(trend, rif)
+    if allerta:
+        st.error(allerta)
+    else:
+        st.success(f"Nessun drift: accuracy mai sotto {round(rif - 0.10, 3)} per due settimane di fila "
+                   f"(riferimento {round(rif, 3)}).")
+    st.caption("Il dataset non ha date: le settimane sono blocchi consecutivi del test set (limite dichiarato).")
+
+    st.subheader("Override umano per area")
+    ovr = om.override_per_area()
+    if ovr:
+        st.dataframe(pd.DataFrame(ovr), width="stretch")
+        for o in ovr:
+            if o["allerta"]:
+                st.error(f"OVERRIDE: in {o['area']} gli operatori correggono l'AI nel "
+                         f"{o['tasso_override']:.0%} dei casi, oltre il doppio della media "
+                         f"({o['media']:.0%}). Verificare il modello in quest'area.")
+    else:
+        st.caption("Nessuna decisione ancora revisionata.")
 
 # ----------------------------------------------------------------------
 with tab_audit:
     ok, n = audit.verifica_catena()
     st.metric("Integrità catena audit", "VERIFICATA" if ok else "COMPROMESSA",
               delta=f"{n} record")
-    st.caption("TODO: tabella filtrabile del log per asset/operatore/periodo.")
+    if not ok:
+        st.error(f"Catena interrotta al record {n + 1}: il log è stato modificato dopo la scrittura.")
+    st.caption("Ogni record contiene l'hash del precedente: modificare o cancellare una riga "
+               "rompe la catena da quel punto in poi, e la verifica lo segnala.")
+
+    righe = []
+    for rec in audit._leggi():
+        dec, ex = rec.get("decisione") or {}, rec.get("extra") or {}
+        righe.append({"quando": rec["timestamp"][:19].replace("T", " "), "attore": rec["attore"],
+                      "evento": rec["evento"], "asset_id": dec.get("asset_id") or ex.get("asset_id"),
+                      "decisione": dec.get("id"), "livello": dec.get("livello"), "stato": dec.get("stato"),
+                      "azione": dec.get("azione"), "motivazione": dec.get("motivazione") or ex.get("motivazione"),
+                      "confermato_da": ex.get("confermato_da")})
+    log = pd.DataFrame(righe)
+
+    st.subheader("Ricostruisci una decisione")
+    # DECISIONE: risposta a T6 in un passaggio: chi, cosa, quando, perche', AI approvata o corretta
+    rev = log[log["evento"].str.startswith("revisione_")]
+    if rev.empty:
+        st.caption("Nessuna decisione ancora revisionata.")
+    else:
+        scelta = st.selectbox("Asset con decisione chiusa", rev["asset_id"].unique()[::-1])
+        ultima = rev[rev["asset_id"] == scelta].iloc[-1]
+        origine = log[(log["decisione"] == ultima["decisione"]) & log["evento"].str.startswith("in_coda")]
+        proposta = origine["azione"].iloc[0] if not origine.empty else "n/d"
+        esito = ultima["evento"].removeprefix("revisione_")
+        giudizio = {"APPROVATA": "AI approvata", "MODIFICATA": "AI corretta",
+                    "RIFIUTATA": "AI rifiutata"}.get(esito, esito)
+        st.markdown(f"**Chi:** {ultima['attore']} · **Quando:** {ultima['quando']} · "
+                    f"**Livello:** {ultima['livello']}  \n"
+                    f"**Cosa:** {giudizio} — proposta AI `{proposta}`, azione finale `{ultima['azione']}`  \n"
+                    f"**Perché:** {ultima['motivazione']}")
+        st.dataframe(log[log["asset_id"] == scelta], width="stretch", hide_index=True)
+
+    st.subheader("Log completo")
+    f1, f2, f3, f4 = st.columns(4)
+    f_asset = f1.text_input("Asset contiene")
+    f_oper = f2.multiselect("Attore", sorted(log["attore"].unique()))
+    giorni = pd.to_datetime(log["quando"]).dt.date
+    f_per = f3.date_input("Periodo", value=(giorni.min(), giorni.max()))
+    tecnici = f4.checkbox("Mostra eventi delle spiegazioni", value=False)
+    vista = log.copy()
+    if f_asset:
+        vista = vista[vista["asset_id"].fillna("").str.contains(f_asset, case=False)]
+    if f_oper:
+        vista = vista[vista["attore"].isin(f_oper)]
+    if isinstance(f_per, tuple) and len(f_per) == 2:
+        vista = vista[pd.to_datetime(vista["quando"]).dt.date.between(*f_per)]
+    if not tecnici:
+        vista = vista[~vista["evento"].str.startswith("spiegazione_")]
+    st.dataframe(vista.iloc[::-1], width="stretch", hide_index=True)
+    e1, e2 = st.columns(2)
+    e1.download_button("Esporta CSV per audit esterno", vista.to_csv(index=False), "audit_energuard.csv")
+    e2.download_button("Esporta JSONL originale (con hash)", audit.path.read_text(encoding="utf-8"),
+                       "audit_trail.jsonl")
 
 # ----------------------------------------------------------------------
 with tab_kpi:

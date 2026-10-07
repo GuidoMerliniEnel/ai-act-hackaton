@@ -15,6 +15,7 @@ TODO per il team:
 """
 
 import pandas as pd
+from typing import Optional
 from sklearn.metrics import (accuracy_score, precision_score, recall_score,
                              confusion_matrix)
 
@@ -85,6 +86,28 @@ class BiasDetector:
 
     def gruppi_da_promuovere(self, calibrazione: pd.DataFrame, col_gruppo: str) -> list[str]:
         return calibrazione.loc[calibrazione["allerta"], col_gruppo].tolist()
+
+    @staticmethod
+    def drift_settimanale(df: pd.DataFrame, n_settimane: int = 12) -> pd.DataFrame:
+        """Il dataset non ha date: il test set e' diviso in blocchi consecutivi come "settimane" simulate."""
+        d = df.reset_index(drop=True)
+        d["settimana"] = d.index * n_settimane // len(d) + 1
+        return d.groupby("settimana").apply(lambda s: pd.Series({
+            "accuracy": (s["y_pred"] == s["y_true"]).mean(),
+            "recall": recall_score(s["y_true"], s["y_pred"], zero_division=0),
+            "confidenza_media": s["confidenza"].mean()})).round(3).reset_index()
+
+    @staticmethod
+    def allerta_drift(trend: pd.DataFrame, riferimento: float, margine: float = 0.10,
+                      consecutive: int = 2) -> Optional[str]:
+        """DECISIONE: allerta se l'accuracy resta sotto riferimento - 0.10 per 2 settimane di fila (una sola = rumore)."""
+        sotto = (trend["accuracy"] < riferimento - margine).astype(int)
+        serie = sotto.groupby((sotto != sotto.shift()).cumsum()).cumsum()
+        if (serie >= consecutive).any():
+            sett = trend.loc[serie >= consecutive, "settimana"].tolist()
+            return (f"DRIFT: accuracy sotto {round(riferimento - margine, 3)} per {consecutive} "
+                    f"settimane consecutive (settimane {sett}). Decisioni HOTL promosse a HITL.")
+        return None
 
     def allerte_calibrazione(self, calibrazione: pd.DataFrame, col_gruppo: str) -> list[str]:
         return [
