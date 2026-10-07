@@ -124,7 +124,7 @@ python test_llm.py              # explanation engine: template and LLM
 | [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications |
 | [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md) | 5–7 min demo script and answers to tests T1–T6 |
 
-Every decision (D-01..D-35) is recorded with its rationale in
+Every decision (D-01..D-37) is recorded with its rationale in
 [TRACCIAMENTO_MODIFICHE.md](TRACCIAMENTO_MODIFICHE.md) and cited in the
 code as `DECISIONE:` comments.
 
@@ -209,7 +209,7 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 ├── prova_test_giuria.py        # rehearsal of jury tests T1–T6
 ├── test_llm.py                 # explanation engine smoke test
 ├── consegna/                   # Tier 4 submission documents
-├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-36
+├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-37
 ├── zensical.toml               # documentation site configuration
 ├── requirements.txt            # application dependencies
 ├── requirements-docs.txt       # documentation dependencies

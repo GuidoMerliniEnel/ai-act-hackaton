@@ -11,7 +11,7 @@ Sistema di manutenzione predittiva con supervisione umana per asset critici dell
 
 ## Dati
 
-- 2.400 asset, 11 caratteristiche (età, temperatura, vibrazione, carico, umidità, manutenzioni, giorni dall'ultima manutenzione, tipo, area, criticità dell'utenza). Target: guasto registrato entro 30 giorni (18% dei casi).
+- 2.400 asset, 10 caratteristiche (età, temperatura, vibrazione, carico, umidità, manutenzioni, giorni dall'ultima manutenzione, tipo, area, criticità dell'utenza). Target: guasto registrato entro 30 giorni (18% dei casi).
 - Split 70/30 stratificato, test set di 720 asset.
 - **Il target è ciò che è stato registrato, non necessariamente ciò che è accaduto.** Sud e Isole hanno profili quasi identici ma guasti registrati 0.24 contro 0.45: ipotesi di sotto-segnalazione al Sud (D-04).
 - `area_geografica` è esclusa dal modello perché fa da proxy del bias; resta nei dati per monitoraggio, stop e fairness (D-03).
@@ -57,3 +57,4 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 - Il drift è simulato: il dataset non ha date (D-26).
 - Il rapporto di costo 10:1 è un'ipotesi del gruppo, non un dato aziendale.
 - 183 ispezioni inutili su 720: è il prezzo di un recall più alto.
+- I numeri vengono da un'esecuzione di `train_baseline.py`: con versioni diverse di scikit-learn possono cambiare di un caso (es. 182 invece di 183 ispezioni inutili). Prima della demo si rieseguono sulla macchina della demo.

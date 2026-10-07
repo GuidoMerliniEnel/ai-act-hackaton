@@ -22,3 +22,4 @@
 5. **Drift solo simulato** e **SLA non provato sotto carico reale**.
 6. **La confidenza scelta è povera**: replica la probabilità. Una misura di accordo tra gli alberi sarebbe più informativa.
 7. **Dipendenza da un fornitore LLM esterno** per i dettagli: mitigata dal fallback, ma il testo può variare tra due chiamate.
+8. **Riproducibilità tra macchine**: le dipendenze non sono fissate a una versione esatta; con scikit-learn diversi i conteggi cambiano di un caso (182 o 183 falsi positivi, 7 o 8 decisioni bloccate dallo stop). In produzione servirebbero versioni bloccate e il modello versionato.

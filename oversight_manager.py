@@ -101,13 +101,14 @@ class OversightManager:
     # ROUTING - il cuore dell'esercizio
     # ------------------------------------------------------------------
     def route(self, r: Raccomandazione) -> LivelloSupervisione:
-        """Assegna il livello di supervisione. COMPLETARE E GIUSTIFICARE.
+        """Assegna il livello di supervisione (D-08): prima regola che scatta.
 
-        Logica minima di partenza (da estendere):
-          - utenza critica (ospedali, infrastrutture) o azione "riduci_carico"
-            su utenza alta/critica  -> HIC, sempre
-          - rischio alto O confidenza bassa                     -> HITL
-          - rischio basso E confidenza alta E azione leggera    -> HOTL
+          1. utenza critica, o riduci_carico su utenza alta/critica -> HIC
+          2. rischio >= soglia_rischio o confidenza < soglia_conf -> HITL
+          3. area con allerta di calibrazione o drift (D-19, D-27) -> HITL
+          4. azione leggera (nessuna_azione, ispezione_routine)     -> HOTL
+          5. altrimenti                                             -> HITL
+        Stessa matrice di livello_dichiarato() e di consegna/3_Dichiarazione_Oversight.md.
         """
         if r.criticita_utenza == "critica" or (
                 r.azione_proposta == "riduci_carico" and r.criticita_utenza != "standard"):
