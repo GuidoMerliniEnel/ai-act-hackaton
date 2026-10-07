@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Enel SpA
 """EnerGuard Starter Kit - lettura CSV robusta.
 Accetta sia il CSV standard (separatore virgola, decimale punto) sia la
 versione per Excel italiano (separatore punto e virgola, decimale virgola).

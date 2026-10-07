@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Enel SpA
 """
 EnerGuard Starter Kit - AuditLogger
 ====================================
@@ -6,11 +8,12 @@ l'hash della precedente, quindi qualunque manomissione a posteriori rompe
 la catena ed e' rilevabile. Risponde ai requisiti di tracciabilita'
 (Art. 12 e Art. 14 AI Act).
 
-TODO per il team:
-  1. Loggare TUTTE le transizioni di stato, non solo le approvazioni:
-     ingresso in coda, auto-esecuzioni HOTL, escalation, stop, sblocchi.
-  2. Esporre nella dashboard la verifica di integrita' (`verifica_catena`).
-  3. Aggiungere un filtro/ricerca del log per asset, operatore, periodo.
+DECISIONI del team:
+  1. Tutte le transizioni di stato sono loggate dall'OversightManager: ingresso in coda,
+     auto-esecuzioni HOTL, revisioni, escalation SLA, stop, sblocchi, risottomissioni (KPI D1).
+  2. Integrita' della catena (`verifica_catena`) sempre visibile nella sidebar (D-30).
+  3. Log filtrabile per asset, attore e periodo, con ricostruzione ed export nella scheda Audit (D-29).
+  4. Scritture protette da lock per la generazione parallela delle spiegazioni (D-24).
 """
 
 import hashlib

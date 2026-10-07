@@ -83,7 +83,7 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 ## Setup
 
 - Installate le dipendenze di `requirements.txt` e `pypdf` (usato solo per leggere i PDF della documentazione).
-- Eseguito `train_baseline.py`: AUC 0.862, generati `modello.joblib` e `predizioni.csv`.
+- Eseguito `train_baseline.py`: AUC 0.862 sul kit originale, 0.868 dopo la mitigazione D-03 (area fuori dal modello); generati `modello.joblib` e `predizioni.csv`.
 - `.env` già presente e configurato per Azure (`gpt-5.6-luna`); non modificato.
 
 ## Modifiche al codice
@@ -146,7 +146,7 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - La matrice mostra che con confidenza = $\max(p, 1-p)$ i punti stanno su una "V": la confidenza non aggiunge informazione alla probabilità. Un'alternativa (es. accordo tra gli alberi della foresta) sarebbe più informativa (limite di D-07).
 - ~~Primo caricamento lento (circa 30 s)~~: risolto con D-24, ora circa 5 s.
 - ~~Spiegazioni controintuitive~~: risolto con D-21 e D-22. Restano 3 casi su 30 in cui un valore "nella norma" alza leggermente il rischio: è coerente con il modello, la direzione è mostrata accanto al fattore.
-- `test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`: il suo `rec` non include `soglia_confidenza` (in `app.py` è passata correttamente).
+- ~~`test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`~~: risolto, il suo `rec` ora include `soglia_confidenza` e usa `proponi_azione` come `app.py`.
 - Dall'analisi baseline: recall Nord/Centro ~0.54 contro Isole 0.95; FPR Sud/Isole ~0.49 (da indagare per il test T5).
 
 ## Tier 1: decisioni e indagine
@@ -252,4 +252,10 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 - Tier 2: completato.
 - Tier 3: completato.
 - Tier 1: completato.
-- Tier 4: documenti in `consegna/` (model card, relazione d'impatto, Dichiarazione di oversight, scaletta demo e risposte ai test); `prova_test_giuria.py` 8/8. Resta: revisione dei documenti da parte del gruppo e prova della demo a voce.
+- Tier 4: documenti ufficiali di consegna in `consegna/` (model card, relazione d'impatto, Dichiarazione di oversight, scaletta demo e risposte ai test); `prova_test_giuria.py` 8/8. Versione inglese di supporto in `docs/compliance/` (sito Zensical). Resta: revisione dei documenti da parte del gruppo e prova della demo a voce.
+
+## Allineamento OSPO
+
+- Repository allineato alle linee guida [Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO): `LICENSE` (Apache-2.0), `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/CODEOWNERS`, template di issue e PR, header SPDX nei sorgenti.
+- Sito di documentazione Zensical in `docs/` (inglese) con tema Enel Design System; workflow `docs.yml` per GitHub Pages.
+- Da [reference_architectures](https://github.com/ENEL-GICT-PTG/reference_architectures): istruzioni Copilot OP35/OP36, `AGENTS.md`, agente tech writer, skill `enel-design-system`, `renovate.json5` e gate di sicurezza e licenze in `ci.yml`.

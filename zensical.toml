@@ -1,0 +1,143 @@
+[project]
+site_name = "EnerGuard"
+site_url = "https://guidomerlinienel.github.io/ai-act-hackaton/"
+site_description = "EnerGuard — human oversight for predictive maintenance of grid assets under the EU AI Act"
+repo_name = "GuidoMerliniEnel/ai-act-hackaton"
+repo_url = "https://github.com/GuidoMerliniEnel/ai-act-hackaton"
+edit_uri = "edit/main/docs/"
+copyright = "© 2026 Enel SpA · Apache-2.0"
+extra_css = ["stylesheets/extra.css"]
+
+# Navigation tree (must stay above the first [project.*] sub-table)
+nav = [
+  { Home = "index.md" },
+  { About = "about/index.md" },
+  { "Getting Started" = [
+    "getting-started/index.md",
+    { Installation = "getting-started/installation.md" },
+    { "Using the Dashboard" = "getting-started/usage.md" },
+    { "LLM Configuration" = "getting-started/llm-configuration.md" },
+  ] },
+  { Architecture = [
+    "architecture/index.md",
+    { Modules = "architecture/modules.md" },
+    { Dataset = "architecture/dataset.md" },
+  ] },
+  { Compliance = [
+    "compliance/index.md",
+    { "Model Card" = "compliance/model-card.md" },
+    { "Impact Assessment" = "compliance/impact-assessment.md" },
+    { "Oversight Declaration" = "compliance/oversight-declaration.md" },
+  ] },
+  { Quality = [
+    "quality/index.md",
+    { "Oversight KPIs" = "quality/kpis.md" },
+    { "Verification Tests" = "quality/verification-tests.md" },
+  ] },
+  { Decisions = "decisions/index.md" },
+  { Project = [
+    { Contributing = "project/contributing.md" },
+    { Security = "project/security.md" },
+    { License = "project/license.md" },
+  ] },
+]
+
+[project.theme]
+name = "material"
+custom_dir = "overrides"
+language = "en"
+features = [
+  "content.action.edit",
+  "content.code.copy",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.sections",
+  "navigation.tabs",
+  "navigation.top",
+  "search.highlight",
+  "search.suggest",
+  "toc.follow",
+]
+logo = "assets/images/logo.svg"
+favicon = "assets/images/favicon.svg"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "enel"
+primary = "custom"
+accent = "custom"
+toggle = { icon = "material/brightness-7", name = "Switch to dark mode" }
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+toggle = { icon = "material/brightness-4", name = "Switch to light mode" }
+
+[project.theme.font]
+text = "Inter"
+code = "Roboto Mono"
+
+[project.plugins]
+search = {}
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/GuidoMerliniEnel/ai-act-hackaton"
+
+[project.extensions]
+abbr = true
+admonition = true
+attr_list = true
+def_list = true
+footnotes = true
+md_in_html = true
+tables = true
+
+[project.extensions.toc]
+permalink = true
+
+[project.extensions.pymdownx_betterem]
+smart_enable = "all"
+
+[project.extensions.pymdownx_caret]
+enabled = true
+
+[project.extensions.pymdownx_details]
+enabled = true
+
+[project.extensions.pymdownx_emoji]
+emoji_index = "twemoji"
+emoji_generator = "to_svg"
+
+[project.extensions.pymdownx_highlight]
+anchor_linenums = true
+line_spans = "__span"
+pygments_lang_class = true
+
+[project.extensions.pymdownx_inlinehilite]
+enabled = true
+
+[project.extensions.pymdownx_keys]
+enabled = true
+
+[project.extensions.pymdownx_mark]
+enabled = true
+
+[project.extensions.pymdownx_smartsymbols]
+enabled = true
+
+[project.extensions.pymdownx_superfences]
+custom_fences = [{ name = "mermaid", class = "mermaid" }]
+
+[project.extensions.pymdownx_tabbed]
+alternate_style = true
+
+[project.extensions.pymdownx_tasklist]
+custom_checkbox = true
+
+[project.extensions.pymdownx_tilde]
+enabled = true

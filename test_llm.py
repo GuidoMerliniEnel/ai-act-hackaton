@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Enel SpA
 """
 EnerGuard Starter Kit - test dell'explainer
 ============================================
@@ -11,6 +13,7 @@ import joblib
 import pandas as pd
 
 from explainer import ConfigLLM, SpiegatoreLLM, SpiegatoreTemplate, estrai_fattori
+from oversight_manager import proponi_azione
 from utils_io import carica_csv, prepara_feature
 
 modello = joblib.load("modello.joblib")
@@ -24,7 +27,9 @@ x = X.loc[df["asset_id"] == riga["asset_id"]].iloc[0]
 fattori = estrai_fattori(modello, x, feature_names)
 rec = {"asset_id": riga["asset_id"], "tipo_asset": riga["tipo_asset"], "area_geografica": riga["area_geografica"],
        "criticita_utenza": riga["criticita_utenza"], "prob_guasto": float(riga["proba"]),
-       "confidenza": float(riga["confidenza"]), "azione_proposta": "programma_manutenzione", "livello": "HITL"}
+       "confidenza": float(riga["confidenza"]),
+       "azione_proposta": proponi_azione(float(riga["proba"]), riga["criticita_utenza"]),
+       "livello": "HITL", "soglia_confidenza": 0.80}
 
 print("=== Fattori principali (SHAP) ===")
 for f in fattori:
