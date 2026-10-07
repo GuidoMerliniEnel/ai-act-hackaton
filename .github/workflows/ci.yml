@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Syntax check
+        run: python -m compileall -q .
+
+      - name: Train model and fairness report
+        run: python train_baseline.py
+
+      - name: Explanation engine (template mode)
+        env:
+          LLM_PROVIDER: none
+        run: python test_llm.py
+
+  docs:
+    name: Docs build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements-docs.txt
+
+      - run: zensical build --clean
+
+  security-gate:
+    name: Security gate (dependency audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install pip-audit
+
+      - run: pip-audit -r requirements.txt -r requirements-docs.txt
+
+  license-gate:
+    name: License gate (OSPO policy)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies and tooling
+        run: pip install -r requirements.txt -r requirements-docs.txt pip-licenses
+
+      - name: Verify licenses
+        run: |
+          pip-licenses --format=json --output-file licenses.json
+          python - << 'PY'
+          import json, re, sys
+
+          deny = [r"\bagpl", r"sspl", r"gnu\s+general\s+public\s+license\s+v?3", r"\bgpl\s*v?3"]
+          with open("licenses.json", encoding="utf-8") as f:
+              data = json.load(f)
+          bad = [(p["Name"], p["Version"], p["License"]) for p in data
+                 if any(re.search(d, (p.get("License") or "").lower()) for d in deny)]
+          for name, version, lic in bad:
+              print(f"- {name}=={version}: {lic}")
+          sys.exit(1 if bad else 0)
+          PY

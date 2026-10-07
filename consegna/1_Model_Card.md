@@ -24,23 +24,23 @@ Sistema di manutenzione predittiva con supervisione umana per asset critici dell
 
 ## Prestazioni (test set, 720 asset)
 
-| Globale | AUC | Recall | Precision | Accuracy | Guasti mancati | Ispezioni inutili |
-| --- | --- | --- | --- | --- | --- | --- |
-| Valore | 0.868 | 0.837 | 0.371 | 0.717 | 21 | 183 |
+| Globale | AUC   | Recall | Precision | Accuracy | Guasti mancati | Ispezioni inutili |
+| ------- | ----- | ------ | --------- | -------- | -------------- | ----------------- |
+| Valore  | 0.868 | 0.837  | 0.371     | 0.717    | 21             | 183               |
 
-| Area | Recall | FPR | Gap calibrazione |
-| --- | --- | --- | --- |
-| Nord | 0.714 | 0.147 | 0.062 |
-| Centro | 0.750 | 0.242 | 0.064 |
-| Sud | 0.882 | 0.688 | **0.177** (allerta) |
-| Isole | 0.930 | 0.622 | −0.034 |
+| Area   | Recall | FPR   | Gap calibrazione    |
+| ------ | ------ | ----- | ------------------- |
+| Nord   | 0.714  | 0.147 | 0.062               |
+| Centro | 0.750  | 0.242 | 0.064               |
+| Sud    | 0.882  | 0.688 | **0.177** (allerta) |
+| Isole  | 0.930  | 0.622 | −0.034              |
 
-| Tipo asset | Recall | Criticità utenza | Recall |
-| --- | --- | --- | --- |
-| cabina primaria | 0.810 | standard | 0.765 |
-| trasformatore | 0.814 | alta | 0.971 |
-| linea AT | 0.824 | critica | 0.929 |
-| turbina eolica | 0.903 | | |
+| Tipo asset      | Recall | Criticità utenza | Recall |
+| --------------- | ------ | ---------------- | ------ |
+| cabina primaria | 0.810  | standard         | 0.765  |
+| trasformatore   | 0.814  | alta             | 0.971  |
+| linea AT        | 0.824  | critica          | 0.929  |
+| turbina eolica  | 0.903  |                  |        |
 
 Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap di recall tra aree 0.411, guasti mancati su utenze critiche/alte 3/6, ora 1/1.
 

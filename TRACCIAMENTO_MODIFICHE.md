@@ -55,6 +55,7 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 | D-33 | Riquadro generato da regole fisse, non dall'LLM                                                                                                                      | Istantaneo, ripetibile, nessun numero inventato e nessuna dipendenza dalla rete: la parte che deve capire chiunque non può dipendere da un servizio esterno                                                              | Tecnica             | `guida_semplice`                          |
 | D-34 | Scenario "e se...": il modello rifà la previsione con il fattore principale riportato alla mediana della flotta, e dice se l'intervento sarebbe ancora richiesto     | Spiegazione contrastiva, livello 4 della rubrica: mostra che cosa dovrebbe cambiare perché cambi la raccomandazione. È calcolata, non scritta a mano                                                                     | Tecnica             | `explainer.scenario_media`                |
 | D-35 | Script `prova_test_giuria.py` che esegue i 6 test della giuria su log temporanei                                                                                     | Prova generale ripetibile prima della demo; non tocca il log reale né `.env`. Oggi 8/8 verifiche superate                                                                                                                | Tecnica             | `prova_test_giuria.py`                    |
+| D-36 | Riquadri `!!!` del sito protetti con `<!-- prettier-ignore-start/end -->`                                                                                            | Il formatter al salvataggio toglieva il rientro: i 9 limiti dichiarati della model card inglese sarebbero finiti attaccati al titolo. Corretti anche 3 riquadri già rotti                                                | Tecnica             | `docs/`                                   |
 
 ## Cronologia git
 
@@ -76,14 +77,18 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `2f738b2` | Tier 3: spiegazioni (D-21..D-24)                                    |
 | `772495f` | Tier 3: matrice, drift, override per area, audit (D-25..D-30)       |
 | `abec779` | Card "In parole semplici" con scenario "e se..." (D-31..D-34)       |
-| (questo)  | Tier 4: documenti di consegna e prova dei 6 test (D-35)             |
+| `a110082` | Tier 4: documenti di consegna e prova dei 6 test (D-35)             |
+| `afa66dd` | Formattazione tabelle in `consegna/` e tracciamento                 |
+| `1ceea5a` | Merge di `tier4` (Marco Gazzuolo): OSPO, sito `docs/`, test_llm     |
+| `66274e5` | Allineamento di `docs/` alla consegna ufficiale                     |
+| (questo)  | Formattazione automatica e riquadri del sito protetti (D-36)        |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
 ## Setup
 
 - Installate le dipendenze di `requirements.txt` e `pypdf` (usato solo per leggere i PDF della documentazione).
-- Eseguito `train_baseline.py`: AUC 0.862, generati `modello.joblib` e `predizioni.csv`.
+- Eseguito `train_baseline.py`: AUC 0.862 sul kit originale, 0.868 dopo la mitigazione D-03 (area fuori dal modello); generati `modello.joblib` e `predizioni.csv`.
 - `.env` già presente e configurato per Azure (`gpt-5.6-luna`); non modificato.
 
 ## Modifiche al codice
@@ -146,7 +151,7 @@ Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 - La matrice mostra che con confidenza = $\max(p, 1-p)$ i punti stanno su una "V": la confidenza non aggiunge informazione alla probabilità. Un'alternativa (es. accordo tra gli alberi della foresta) sarebbe più informativa (limite di D-07).
 - ~~Primo caricamento lento (circa 30 s)~~: risolto con D-24, ora circa 5 s.
 - ~~Spiegazioni controintuitive~~: risolto con D-21 e D-22. Restano 3 casi su 30 in cui un valore "nella norma" alza leggermente il rischio: è coerente con il modello, la direzione è mostrata accanto al fattore.
-- `test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`: il suo `rec` non include `soglia_confidenza` (in `app.py` è passata correttamente).
+- ~~`test_llm.py` ricade nel template per `numero non presente nei dati: 0.8`~~: risolto, il suo `rec` ora include `soglia_confidenza` e usa `proponi_azione` come `app.py`.
 - Dall'analisi baseline: recall Nord/Centro ~0.54 contro Isole 0.95; FPR Sud/Isole ~0.49 (da indagare per il test T5).
 
 ## Tier 1: decisioni e indagine
@@ -252,4 +257,21 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 - Tier 2: completato.
 - Tier 3: completato.
 - Tier 1: completato.
-- Tier 4: documenti in `consegna/` (model card, relazione d'impatto, Dichiarazione di oversight, scaletta demo e risposte ai test); `prova_test_giuria.py` 8/8. Resta: revisione dei documenti da parte del gruppo e prova della demo a voce.
+- Tier 4: documenti ufficiali di consegna in `consegna/` (model card, relazione d'impatto, Dichiarazione di oversight, scaletta demo e risposte ai test); `prova_test_giuria.py` 8/8. Versione inglese di supporto in `docs/compliance/` (sito Zensical). Resta: revisione dei documenti da parte del gruppo e prova della demo a voce.
+
+## Allineamento OSPO
+
+- Repository allineato alle linee guida [Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO): `LICENSE` (Apache-2.0), `NOTICE`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/CODEOWNERS`, template di issue e PR, header SPDX nei sorgenti.
+- Sito di documentazione Zensical in `docs/` (inglese) con tema Enel Design System; workflow `docs.yml` per GitHub Pages.
+- Da [reference_architectures](https://github.com/ENEL-GICT-PTG/reference_architectures): istruzioni Copilot OP35/OP36, `AGENTS.md`, agente tech writer, skill `enel-design-system`, `renovate.json5` e gate di sicurezza e licenze in `ci.yml`.
+
+## Merge del branch `tier4`
+
+- **Origine**: tre commit di Marco Gazzuolo (`ee05562`, `d5d6113`, `da77f29`), partiti da `772495f` (fine Tier 3). Non contenevano la card "In parole semplici" né `consegna/`.
+- **Esito**: un solo conflitto, in questo file (riga "Tier 4" più sezione OSPO), risolto tenendo entrambe le parti. Il codice Python si è fuso da solo: intestazioni SPDX, docstring da TODO a DECISIONI in `audit_logger.py` e `oversight_manager.py`, `test_llm.py` con `soglia_confidenza` e `proponi_azione`. Dopo il merge: sintassi ok, `prova_test_giuria.py` 8/8.
+- **Decisione: la consegna ufficiale è `consegna/` (italiano)**; `docs/` è la versione inglese di supporto e lo dichiara in apertura.
+- **Allineamenti fatti in `docs/`**: numeri della model card ricalcolati da `predizioni.csv` di questa macchina (precision 0.371, accuracy 0.717, FPR Nord 0.147, FPR per tipo e criticità); registro inglese con D-20 confermata dal gruppo, soglie in `utils_io.SOGLIE_PER_CRITICITA`, D-31..D-35; contatori "D-01..D-35" in `docs/index.md`, `README.md`, `AGENTS.md`.
+- **Punti aperti da decidere nel gruppo**:
+  - Licenza Apache-2.0 con "Copyright Enel SpA" su un repository pubblico che contiene anche i PDF del corso Deloitte × ENEL: verificare che sia consentito.
+  - `ci.yml` parte a ogni push con controlli di sicurezza e licenze: verificare il primo esito su GitHub Actions.
+  - GitHub Pages pubblica il sito solo dopo l'attivazione manuale in Settings → Pages: decidere se attivarla.

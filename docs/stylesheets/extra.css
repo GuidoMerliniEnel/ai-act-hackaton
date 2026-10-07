@@ -1,0 +1,198 @@
+/* ------------------------------------------------------------------
+   Enel Design System — CSS Overrides for Zensical / Material Theme
+   Source: ENEL-GICT-PTG/OSPO docs/stylesheets/extra.css
+   ------------------------------------------------------------------ */
+
+/* 1. Design Tokens */
+:root {
+  --enel-primary: #d3135a;
+  --enel-secondary: #0047cc;
+  --enel-ocean: #0047cc;
+  --enel-dark-ocean: #003eb3;
+  --enel-dark-green: #008c5a;
+  --enel-green: #55be5a;
+  --enel-light-blue: #41b9e6;
+  --enel-light-ocean: #0152e8;
+  --enel-black: #0e141a;
+  --enel-smoke: #667790;
+  --enel-dark-snow: #c2cddd;
+  --enel-snow: #eff2f7;
+  --enel-white: #fff;
+  --enel-magenta: #d3135a;
+  --enel-orange: #ff5a0f;
+  --enel-yellow: #ffc82c;
+  --enel-cyan: #12caea;
+  --enel-red: #eb0a00;
+  --enel-success: #13ce66;
+}
+
+/* 2. Light Scheme — "enel" */
+[data-md-color-scheme="enel"] {
+  --md-primary-fg-color: var(--enel-primary);
+  --md-primary-fg-color--light: #e84d83;
+  --md-primary-fg-color--dark: #b00e4a;
+  --md-primary-bg-color: var(--enel-white);
+  --md-accent-fg-color: var(--enel-secondary);
+  --md-default-bg-color: var(--enel-white);
+  --md-default-fg-color: var(--enel-black);
+  --md-default-fg-color--light: var(--enel-smoke);
+  --md-typeset-a-color: var(--enel-secondary);
+}
+
+/* 3. Dark Scheme overrides */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--enel-primary);
+  --md-primary-fg-color--light: #e84d83;
+  --md-primary-fg-color--dark: #b00e4a;
+  --md-accent-fg-color: var(--enel-light-blue);
+  --md-typeset-a-color: var(--enel-light-blue);
+}
+
+/* 4. Logo sizing */
+.md-header__button.md-logo {
+  display: inline-flex !important;
+  align-items: center;
+  padding-right: 0.5rem;
+}
+
+.md-header__button.md-logo img {
+  height: 2.1rem;
+  width: auto;
+  object-fit: contain;
+  max-width: none;
+}
+
+.md-header__title {
+  display: none;
+}
+
+/* 5. Header / Tabs bar */
+.md-tabs {
+  background-color: var(--enel-black);
+  color: var(--enel-white);
+}
+
+.md-tabs__link {
+  color: var(--enel-white) !important;
+  opacity: 0.7;
+}
+
+.md-tabs__link:hover,
+.md-tabs__link--active {
+  color: var(--enel-white) !important;
+  opacity: 1;
+}
+
+/* 6. Navigation — active link */
+.md-nav__link--active {
+  color: var(--enel-primary) !important;
+}
+
+/* 7. Typography */
+.md-typeset h1 {
+  font-weight: 700;
+}
+
+.md-typeset h2 {
+  border-bottom: 1px solid var(--enel-dark-snow);
+  padding-bottom: 0.4rem;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h2 {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+/* 8. Cards (grid items) */
+.md-typeset .grid .card {
+  border-radius: 0.5rem;
+  transition: box-shadow 0.25s, border-color 0.25s;
+}
+
+.md-typeset .grid .card:hover {
+  border-color: var(--enel-primary);
+  box-shadow: 0 4px 16px rgba(211, 19, 90, 0.12);
+}
+
+/* 9. Buttons */
+.md-typeset .md-button--primary {
+  background-color: var(--enel-primary);
+  border-color: var(--enel-primary);
+}
+
+.md-typeset .md-button--primary:hover {
+  background-color: #b00e4a;
+  border-color: #b00e4a;
+}
+
+/* 10. Layout */
+.md-content {
+  max-width: 1440px;
+}
+
+/* 11. Oversight level badges */
+.md-typeset .level {
+  display: inline-block;
+  padding: 0 0.5em;
+  border-radius: 0.25em;
+  font-weight: 700;
+  font-size: 0.8em;
+  color: var(--enel-white);
+}
+
+.md-typeset .level.hic {
+  background-color: var(--enel-red);
+}
+
+.md-typeset .level.hitl {
+  background-color: var(--enel-orange);
+  color: var(--enel-black);
+}
+
+.md-typeset .level.hotl {
+  background-color: var(--enel-dark-green);
+}
+
+/* 12. Custom admonitions — "do" / "dont" */
+:root {
+  --md-admonition-icon--do: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"/></svg>');
+  --md-admonition-icon--dont: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2c5.53 0 10 4.47 10 10s-4.47 10-10 10S2 17.53 2 12 6.47 2 12 2m3.59 5L12 10.59 8.41 7 7 8.41 10.59 12 7 15.59 8.41 17 12 13.41 15.59 17 17 15.59 13.41 12 17 8.41z"/></svg>');
+}
+
+.md-typeset .admonition.do,
+.md-typeset details.do {
+  border-color: var(--enel-success);
+}
+
+.md-typeset .do > .admonition-title,
+.md-typeset .do > summary {
+  background-color: rgba(19, 206, 102, 0.1);
+}
+
+.md-typeset .do > .admonition-title::before,
+.md-typeset .do > summary::before {
+  background-color: var(--enel-success);
+  -webkit-mask-image: var(--md-admonition-icon--do);
+  mask-image: var(--md-admonition-icon--do);
+}
+
+.md-typeset .admonition.dont,
+.md-typeset details.dont {
+  border-color: var(--enel-red);
+}
+
+.md-typeset .dont > .admonition-title,
+.md-typeset .dont > summary {
+  background-color: rgba(235, 10, 0, 0.1);
+}
+
+.md-typeset .dont > .admonition-title::before,
+.md-typeset .dont > summary::before {
+  background-color: var(--enel-red);
+  -webkit-mask-image: var(--md-admonition-icon--dont);
+  mask-image: var(--md-admonition-icon--dont);
+}
+
+/* 13. Footer */
+.md-footer {
+  border-top: 3px solid var(--enel-primary);
+}

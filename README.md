@@ -1,5 +1,9 @@
 # EnerGuard — Human Oversight for Predictive Maintenance
 
+[![CI](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/ci.yml/badge.svg)](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/ci.yml)
+[![Documentation](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/docs.yml/badge.svg)](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/docs.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 A predictive-maintenance model for grid assets wrapped in an **EU AI Act
 Art. 14 human-oversight layer**. Recommendations are routed by risk to
 HIC / HITL / HOTL and land in an approval queue with mandatory
@@ -13,7 +17,8 @@ Built during the *AI Human Oversight Hackathon* (Deloitte × Enel FNC,
 infrastructure, electricity supply).
 
 > Code, comments, the decision log and the submission documents are in
-> Italian, as required by the hackathon.
+> Italian, as required by the hackathon. The documentation site in
+> [`docs/`](docs/index.md) is in English, following the Enel OSPO guidelines.
 
 ## Quick Start
 
@@ -163,9 +168,36 @@ Step-by-step guide: [GUIDA_LLM_Configurazione.md](GUIDA_LLM_Configurazione.md).
 for Italian Excel. `energuard_dataset.xlsx` includes a column dictionary.
 `utils_io.carica_csv()` reads both CSV formats.
 
+## Documentation Site (Zensical)
+
+The documentation in `docs/` is built with [Zensical](https://zensical.org/),
+a static site generator from the creators of Material for MkDocs. The
+configuration and theme follow the
+[Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO) site (Enel Design System:
+magenta primary, ocean blue accent, Inter font, light and dark mode).
+
+```bash
+pip install -r requirements-docs.txt   # pinned zensical version
+zensical serve                         # http://localhost:8000, reloads on save (-o opens the browser)
+zensical build --clean                 # static HTML in site/ (--clean drops the cache)
+```
+
+To add a page, create the Markdown file under `docs/` and register it in
+the `nav` list of `zensical.toml`: pages missing from `nav` are **silently
+dropped**. Enabled extensions: admonitions, tabs, task lists, footnotes,
+tables, emoji, code copy, Mermaid. Theme colors come only from the
+`--enel-*` tokens in `docs/stylesheets/extra.css` (see
+`.github/skills/enel-design-system/SKILL.md`).
+
+`.github/workflows/docs.yml` deploys the site to GitHub Pages on every push
+to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
+
 ## Project Structure
 
 ```text
+├── .github/                    # CI/CD, issue/PR templates, Copilot customizations
+├── docs/                       # documentation site source (English)
+├── overrides/                  # Zensical template overrides
 ├── run_dashboard.sh / .bat     # one-command launcher
 ├── app.py                      # Streamlit supervision dashboard
 ├── oversight_manager.py        # routing, queue, SLA, emergency stop, KPIs
@@ -177,7 +209,10 @@ for Italian Excel. `energuard_dataset.xlsx` includes a column dictionary.
 ├── prova_test_giuria.py        # rehearsal of jury tests T1–T6
 ├── test_llm.py                 # explanation engine smoke test
 ├── consegna/                   # Tier 4 submission documents
-├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-35
+├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-36
+├── zensical.toml               # documentation site configuration
+├── requirements.txt            # application dependencies
+├── requirements-docs.txt       # documentation dependencies
 └── energuard_dataset*.csv      # synthetic dataset
 ```
 
@@ -192,3 +227,24 @@ Detailed in the model card and impact report. In brief:
 - Drift is simulated, because the dataset has no dates.
 - Operator identity is self-declared.
 - State is held in memory.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). All participants are expected to
+follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report vulnerabilities as
+described in [SECURITY.md](SECURITY.md).
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for
+attributions.
+
+## Acknowledgements
+
+- Deloitte × Enel FNC — EnerGuard starter kit and hackathon materials
+- [Enel OSPO](https://github.com/ENEL-GICT-PTG/OSPO) — repository and
+  documentation guidelines
+- [Enel GICT Reference Architectures](https://github.com/ENEL-GICT-PTG/reference_architectures)
+  — OP35/OP36 governance and Copilot customizations
+- [scikit-learn](https://scikit-learn.org/), [SHAP](https://shap.readthedocs.io/),
+  [Streamlit](https://streamlit.io/), [Zensical](https://zensical.org/)

@@ -1,0 +1,6 @@
+# Default owners for everything in the repository
+*                         @GuidoMerliniEnel
+
+# Oversight logic and routing matrix: changes affect AI Act compliance
+/oversight_manager.py     @GuidoMerliniEnel
+/docs/compliance/         @GuidoMerliniEnel

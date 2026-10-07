@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/GuidoMerliniEnel/ai-act-hackaton/security/advisories/new
+    about: Report vulnerabilities privately.
+  - name: Enel OSPO
+    url: https://github.com/ENEL-GICT-PTG/OSPO
+    about: Open source guidelines at Enel.

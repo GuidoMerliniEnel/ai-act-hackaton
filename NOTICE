@@ -1,0 +1,17 @@
+EnerGuard — Human Oversight for Predictive Maintenance
+Copyright (c) 2026 Enel SpA
+
+This product includes software developed for the AI Human Oversight
+Hackathon (Deloitte x Enel FNC, 2026), based on the EnerGuard Starter Kit
+provided by the hackathon organisers.
+
+The dataset (energuard_dataset.csv, energuard_dataset_EXCEL.csv,
+energuard_dataset.xlsx) is synthetic and contains no personal or
+production data.
+
+Third-party dependencies (see requirements.txt) are distributed under
+their own licenses:
+  - scikit-learn, numpy, pandas, joblib: BSD-3-Clause
+  - shap: MIT
+  - streamlit, requests: Apache-2.0
+  - zensical (documentation only): MIT

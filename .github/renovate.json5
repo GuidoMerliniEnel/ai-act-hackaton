@@ -1,0 +1,55 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":dependencyDashboard",
+    ":semanticPrefixFixDepsChoreOthers",
+    ":timezone(Europe/Rome)"
+  ],
+  "description": "GICT baseline: secure-by-default dependency automation with OSPO-friendly review flows.",
+  "enabledManagers": ["github-actions", "pip_requirements"],
+  "labels": ["dependencies", "renovate"],
+  "dependencyDashboardTitle": "Renovate Dependency Control Center",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "schedule": ["before 6am on monday"],
+  "rebaseWhen": "behind-base-branch",
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "ignorePaths": ["site/**"],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "dependencies", "renovate"],
+    "automerge": false
+  },
+  "packageRules": [
+    {
+      "description": "Low-risk GitHub Actions updates can flow automatically once CI gates pass.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "automerge": true,
+      "automergeType": "pr",
+      "addLabels": ["automerge-low-risk"]
+    },
+    {
+      "description": "Major updates always require human review.",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "addLabels": ["major-update", "manual-review"]
+    },
+    {
+      "description": "Group all GitHub Actions updates to reduce review noise.",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "minimumReleaseAge": "3 days",
+      "addLabels": ["ci-cd"]
+    },
+    {
+      "description": "Model stack changes can shift predictions: never automerge, re-check fairness metrics.",
+      "matchManagers": ["pip_requirements"],
+      "matchPackageNames": ["scikit-learn", "numpy", "pandas", "shap"],
+      "automerge": false,
+      "addLabels": ["model-impact", "manual-review"]
+    }
+  ]
+}
