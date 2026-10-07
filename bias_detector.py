@@ -91,14 +91,14 @@ class BiasDetector:
         return calibrazione.loc[calibrazione["allerta"], col_gruppo].tolist()
 
     def gruppi_recall_basso(self, metriche: pd.DataFrame, col_gruppo: str) -> list[str]:
-        """Gruppi con gap di recall oltre soglia rispetto al migliore (D-39)."""
+        """Gruppi con gap di recall oltre soglia rispetto al migliore (D-43)."""
         m = metriche.dropna(subset=["recall"])
         return sorted(m.loc[m["recall"].max() - m["recall"] > self.soglia_gap_recall, col_gruppo])
 
     @staticmethod
     def recall_con_intervallo(df: pd.DataFrame, col_gruppo: str, n_boot: int = 500,
                               col_y: str = "y_true", col_pred: str = "y_pred") -> pd.DataFrame:
-        """DECISIONE (D-40): recall con intervallo bootstrap al 95%, pochi guasti per area = stime incerte."""
+        """DECISIONE (D-44): recall con intervallo bootstrap al 95%, pochi guasti per area = stime incerte."""
         righe = []
         for gruppo, sub in df.groupby(col_gruppo):
             pos = sub[sub[col_y] == 1][col_pred].to_numpy()
@@ -114,7 +114,7 @@ class BiasDetector:
     def metriche_incrociate(self, df: pd.DataFrame, col_a: str, col_b: str, n_min: int = 15,
                             col_y: str = "y_true", col_pred: str = "y_pred",
                             col_proba: str = "proba") -> pd.DataFrame:
-        """DECISIONE (D-41): metriche per incrocio di due gruppi; sotto n_min il gruppo non e' mostrato."""
+        """DECISIONE (D-45): metriche per incrocio di due gruppi; sotto n_min il gruppo non e' mostrato."""
         righe = []
         for (a, b), sub in df.groupby([col_a, col_b]):
             if len(sub) < n_min:

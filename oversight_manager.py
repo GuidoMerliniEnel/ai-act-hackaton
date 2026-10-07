@@ -88,7 +88,7 @@ class OversightManager:
         self.storico_hotl: list[Raccomandazione] = []
         self.stop_attivi: set[str] = set()   # es. {"area:Sud", "tipo:linea_AT", "GLOBALE"}
         self.aree_promosse: set[str] = set()
-        self.aree_vigilate: set[str] = set()   # aree con allerta di gap di recall (D-39)
+        self.aree_vigilate: set[str] = set()   # aree con allerta di gap di recall (D-43)
         self.soglia_vigilanza = 0.10
 
     def imposta_vigilanza(self, aree: list[str], motivo: str):
@@ -117,7 +117,7 @@ class OversightManager:
           1. utenza critica, o riduci_carico su utenza alta/critica -> HIC
           2. rischio >= soglia_rischio o confidenza < soglia_conf -> HITL
           3. area con allerta di calibrazione o drift (D-19, D-27) -> HITL
-          4. area con allerta di recall e rischio >= 0.10 (D-39)    -> HITL
+          4. area con allerta di recall e rischio >= 0.10 (D-43)    -> HITL
           5. azione leggera (nessuna_azione, ispezione_routine)     -> HOTL
           6. altrimenti                                             -> HITL
         Stessa matrice di livello_dichiarato() e di consegna/3_Dichiarazione_Oversight.md.
@@ -130,7 +130,7 @@ class OversightManager:
         elif r.area_geografica in self.aree_promosse:
             livello = LivelloSupervisione.HITL   # DECISIONE: area con allerta di bias, niente auto-esecuzione
         elif r.area_geografica in self.aree_vigilate and r.prob_guasto >= self.soglia_vigilanza:
-            livello = LivelloSupervisione.HITL   # DECISIONE (D-39): dove il modello manca piu' guasti, l'umano li rivede
+            livello = LivelloSupervisione.HITL   # DECISIONE (D-43): dove il modello manca piu' guasti, l'umano li rivede
         elif r.azione_proposta in ("nessuna_azione", "ispezione_routine"):
             livello = LivelloSupervisione.HOTL
         else:
@@ -345,6 +345,29 @@ class OversightManager:
             out.append({"area": area, "revisioni": len(xs), "tasso_override": round(tasso, 3),
                         "media": round(media, 3),
                         "allerta": len(xs) >= min_revisioni and media > 0 and tasso > 2 * media})
+        return out
+
+    def per_revisore(self, min_revisioni: int = 3) -> list[dict]:
+        """DECISIONE: tempo tra due revisioni consecutive dello stesso operatore come proxy del tempo di lettura."""
+        rev = sorted([r for r in self.coda if r.revisore and r.chiusa_il], key=lambda r: r.chiusa_il)
+        out = []
+        for chi in sorted({r.revisore for r in rev}):
+            xs = [r for r in rev if r.revisore == chi]
+            ist = [datetime.fromisoformat(r.chiusa_il) for r in xs]
+            pause = [(b - a).total_seconds() for a, b in zip(ist, ist[1:])]
+            tempo = round(median(pause), 1) if pause else None
+            approvate = sum(r.stato == StatoDecisione.APPROVATA for r in xs) / len(xs)
+            brevi = sum(len((r.motivazione or "").strip()) < 30 for r in xs) / len(xs)
+            motivi = []
+            if tempo is not None and len(xs) >= min_revisioni and tempo < 10:
+                motivi.append("meno di 10 s tra una decisione e l'altra")
+            if len(xs) >= 5 and approvate == 1:
+                motivi.append("approva tutto")
+            if len(xs) >= min_revisioni and brevi > 0.30:
+                motivi.append("motivazioni troppo brevi")
+            out.append({"revisore": chi, "decisioni": len(xs), "tasso_approvazione": round(approvate, 3),
+                        "secondi_tra_decisioni": tempo, "motivazioni_brevi": round(brevi, 3),
+                        "allerta": ", ".join(motivi)})
         return out
 
     def livello_dichiarato(self, r: Raccomandazione) -> LivelloSupervisione:

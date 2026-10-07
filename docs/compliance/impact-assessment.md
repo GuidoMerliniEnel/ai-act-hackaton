@@ -62,12 +62,12 @@ declared 10:1 cost ratio.
         non-determinism. Fallback keeps the dashboard working, but wording
         may differ between runs.
     11. **Standard users in North and Centre are served worst** (recall
-        0.65–0.68). D-39 adds oversight, not recall.
+        0.65–0.68). D-43 adds oversight, not recall.
     12. **Area still leaks in indirectly**: age and days since maintenance
         predict it 58% of the time. We keep them because they are real risk
         factors.
     13. **Per-area differences are not statistically solid**: 24–43
         failures per area, overlapping confidence intervals.
     14. **Two real failures in the Islands are still auto-executed**
-        (risk 0.14–0.17), an area with no alert. D-39 also adds 83 HITL
+        (risk 0.14–0.17), an area with no alert. D-43 also adds 83 HITL
         decisions on 720: KPI A5 must be watched.

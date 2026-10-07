@@ -56,7 +56,7 @@ criticality, and a calibration alert that promotes the South to HITL. The
 deeper audit adds recall confidence intervals, intersectional groups
 (standard users in North and Centre are served worst) and a routing rule
 that stops auto-execution above p = 0.10 in low-recall areas
-([D-39](../decisions/index.md#d-39)–[D-41](../decisions/index.md#d-41)). See
+([D-43](../decisions/index.md#d-43)–[D-45](../decisions/index.md#d-45)). See
 [Dataset](../architecture/dataset.md),
 [Model card](../compliance/model-card.md#deep-bias-analysis) and
 [Impact assessment](../compliance/impact-assessment.md).

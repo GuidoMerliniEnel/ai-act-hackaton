@@ -1,4 +1,4 @@
----
+﻿---
 hide:
   - toc
 ---
@@ -60,7 +60,7 @@ one click. Every step is recorded in a tamper-evident log.
 
   ***
 
-  The 41 design decisions (D-01..D-41), with rationale and where they
+  The 45 design decisions (D-01..D-45), with rationale and where they
   live in the code.
 
   [:octicons-arrow-right-24: Decisions](decisions/index.md)

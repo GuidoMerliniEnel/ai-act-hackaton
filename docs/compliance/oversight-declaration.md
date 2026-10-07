@@ -23,7 +23,7 @@ Rules are evaluated **in order**; the first match wins.
 | 2 | Action = `riduci_carico` **and** criticality = `alta`                       | <span class="level hic">HIC</span> | Load reduction on a high-criticality user interrupts service |
 | 3 | Probability ≥ 0.60 **or** confidence < 0.80                                 | <span class="level hitl">HITL</span> | High risk or an uncertain model: a human must judge |
 | 4 | Area under an active calibration or drift alert                             | <span class="level hitl">HITL</span> | Possible label bias or degraded performance: no auto-execution ([D-19](../decisions/index.md#d-19), [D-27](../decisions/index.md#d-27)) |
-| 5 | Area under a recall-gap alert **and** probability ≥ 0.10                  | <span class="level hitl">HITL</span> | Where the model misses more failures (today North and Centre), routine inspections are reviewed by a human ([D-39](../decisions/index.md#d-39)) |
+| 5 | Area under a recall-gap alert **and** probability ≥ 0.10                  | <span class="level hitl">HITL</span> | Where the model misses more failures (today North and Centre), routine inspections are reviewed by a human ([D-43](../decisions/index.md#d-43)) |
 | 6 | Action is light (`nessuna_azione`, `ispezione_routine`)                     | <span class="level hotl">HOTL</span> | Low cost, reversible: the AI acts alone |
 | 7 | Anything else                                                               | <span class="level hitl">HITL</span> | Prudent default |
 

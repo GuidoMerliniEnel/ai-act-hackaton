@@ -1,4 +1,4 @@
-# EnerGuard — Human Oversight for Predictive Maintenance
+﻿# EnerGuard — Human Oversight for Predictive Maintenance
 
 [![CI](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/ci.yml/badge.svg)](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/ci.yml)
 [![Documentation](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/docs.yml/badge.svg)](https://github.com/GuidoMerliniEnel/ai-act-hackaton/actions/workflows/docs.yml)
@@ -120,7 +120,7 @@ python test_llm.py              # explanation engine: template and LLM
 - **`prova_test_giuria.py`:** repeatable rehearsal of tests T1–T6 on
   temporary logs. Result: 9/9.
 
-### Deep bias audit (D-39..D-41)
+### Deep bias audit (D-43..D-45)
 
 - **Recall with 95% intervals** per area: with 24–43 failures per area
   the intervals overlap, so the gaps are signals, not proven differences.
@@ -142,7 +142,7 @@ python test_llm.py              # explanation engine: template and LLM
 | [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications |
 | [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md) | 5–7 min demo script and answers to tests T1–T6 |
 
-Every decision (D-01..D-41) is recorded with its rationale in
+Every decision (D-01..D-45) is recorded with its rationale in
 [TRACCIAMENTO_MODIFICHE.md](TRACCIAMENTO_MODIFICHE.md) and cited in the
 code as `DECISIONE:` comments.
 
@@ -227,7 +227,7 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 ├── prova_test_giuria.py        # rehearsal of jury tests T1–T6
 ├── test_llm.py                 # explanation engine smoke test
 ├── consegna/                   # Tier 4 submission documents
-├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-41
+├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-45
 ├── zensical.toml               # documentation site configuration
 ├── requirements.txt            # application dependencies
 ├── requirements-docs.txt       # documentation dependencies
@@ -239,7 +239,7 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 Detailed in the model card and impact report. In brief:
 
 - The recall gap in the North (0.216) remains: those failures show no
-  sensor signal. The watch rule (D-39) adds human review, not recall.
+  sensor signal. The watch rule (D-43) adds human review, not recall.
 - Standard users in the North and Centre are served worst (recall
   0.65–0.68).
 - The South label bias is managed by oversight, not removed.

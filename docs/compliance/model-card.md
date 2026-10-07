@@ -84,7 +84,7 @@ Alert threshold: 0.10.
 
 ## Deep bias analysis
 
-### Uncertainty of per-area estimates ([D-40](../decisions/index.md#d-40))
+### Uncertainty of per-area estimates ([D-44](../decisions/index.md#d-44))
 
 Each area has only 24–43 real failures in the test set. Recall with a
 95% bootstrap interval:
@@ -99,7 +99,7 @@ Each area has only 24–43 real failures in the test set. Recall with a
 The intervals overlap: the 0.216 recall gap is a signal to monitor, not a
 proven difference.
 
-### Intersectional groups ([D-41](../decisions/index.md#d-41))
+### Intersectional groups ([D-45](../decisions/index.md#d-45))
 
 Groups with at least 15 assets. A group can look fine on each axis and
 badly at the intersection.
@@ -124,10 +124,10 @@ and age. They barely separate the South from the Islands (67% vs 65%).
 
 ### Exposure to automation
 
-Before [D-39](../decisions/index.md#d-39), North and Centre had the
+Before [D-43](../decisions/index.md#d-43), North and Centre had the
 highest share of auto-execution (70% and 53%) and the lowest recall: 6
 real failures on the test set would have been auto-executed without
-review. With D-39 two remain, both in the Islands.
+review. With D-43 two remain, both in the Islands.
 
 ## Known limitations
 
@@ -139,7 +139,7 @@ review. With D-39 two remain, both in the Islands.
       well calibrated there, so this is a model limit, not label bias
       ([D-06](../decisions/index.md#d-06)). Oversight compensates in part:
       routine inspections there are no longer auto-executed
-      ([D-39](../decisions/index.md#d-39)).
+      ([D-43](../decisions/index.md#d-43)).
     - **Standard users in North and Centre** have the lowest recall
       (0.65–0.68): the 0.30 threshold and the model limit add up.
     - **Per-area differences are not statistically solid** (24–43

@@ -30,7 +30,7 @@ These KPIs are computed by `OversightManager.kpi()`, `BiasDetector` and
 
 | #  | Indicator                    | Target                     | Current value |
 | -- | ---------------------------- | -------------------------- | ------------- |
-| C1 | Max recall gap               | Measured; alert > 0.15     | 0.216 by area (North; 95% CI 0.57–0.89 vs Islands 0.84–1.00) — alert, North and Centre watched (D-39) |
+| C1 | Max recall gap               | Measured; alert > 0.15     | 0.216 by area (North; 95% CI 0.57–0.89 vs Islands 0.84–1.00) — alert, North and Centre watched (D-43) |
 | C2 | Calibration gap per group    | Alert > 0.10               | South 0.178 — alert, area promoted to HITL |
 | C3 | Override rate per area       | Exposed                    | Alert at > 2× average with ≥ 3 reviews |
 | C4 | Performance drift            | Chart + alert threshold    | 12 simulated weeks; no alert on current data |

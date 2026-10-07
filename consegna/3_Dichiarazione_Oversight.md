@@ -13,7 +13,7 @@ Le regole si applicano nell'ordine: vale la prima che scatta.
 | 3   | Probabilità di guasto **≥ 0.60**                               | **HITL** | Rischio alto: serve un giudizio umano prima di mandare una squadra                                               |
 | 4   | Confidenza **< 0.80**                                          | **HITL** | Il modello è incerto: il caso è vicino al "testa o croce"                                                        |
 | 5   | Area con **allerta di calibrazione o di drift**                | **HITL** | I dati di quell'area sono sospetti: niente auto-esecuzione finché l'allerta resta attiva (D-19, D-27)            |
-| 6   | Area con **allerta di gap di recall** e probabilità **≥ 0.10** | **HITL** | Dove il modello manca più guasti (oggi Nord e Centro) anche l'ispezione di routine passa da un umano (D-39)     |
+| 6   | Area con **allerta di gap di recall** e probabilità **≥ 0.10** | **HITL** | Dove il modello manca più guasti (oggi Nord e Centro) anche l'ispezione di routine passa da un umano (D-43)     |
 | 7   | Azione leggera (**nessuna azione** o **ispezione di routine**) | **HOTL** | Errore a costo basso e pienamente reversibile: il sistema agisce, l'umano rivede dopo                            |
 | 8   | Tutto il resto                                                 | **HITL** | Default prudente                                                                                                 |
 
@@ -38,7 +38,7 @@ Le regole si applicano nell'ordine: vale la prima che scatta.
 
 | Segnale                        | Soglia                                   | Effetto                                    |
 | ------------------------------ | ---------------------------------------- | ------------------------------------------ |
-| Gap di recall tra aree o tipi  | > 0.15                                   | Allerta in dashboard; nell'area HOTL solo sotto 0.10 di rischio (D-39) |
+| Gap di recall tra aree o tipi  | > 0.15                                   | Allerta in dashboard; nell'area HOTL solo sotto 0.10 di rischio (D-43) |
 | Gap di calibrazione di un'area | > 0.10                                   | Allerta e promozione HOTL → HITL nell'area |
 | Accuracy settimanale           | < riferimento − 0.10 per 2 settimane     | Allerta e nessuna auto-esecuzione ovunque  |
 | Override di un'area            | > doppio della media, almeno 3 revisioni | Allerta: verificare il modello nell'area   |

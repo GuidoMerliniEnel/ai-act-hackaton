@@ -46,11 +46,11 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 
 ### Analisi approfondita del bias
 
-- **Incertezza delle stime** (D-40): ogni area ha solo 24-43 guasti reali nel test set. Recall con intervallo bootstrap al 95%: Nord 0.71 [0.57-0.89], Centro 0.75 [0.58-0.92], Sud 0.88 [0.76-0.97], Isole 0.93 [0.84-1.00]. Gli intervalli si sovrappongono: il gap di recall è un segnale da monitorare, non una differenza dimostrata.
-- **Gruppi incrociati** (D-41, almeno 15 asset): il gruppo servito peggio sono le **utenze standard di Centro e Nord** (recall 0.65 e 0.68), invisibile guardando area e criticità separatamente. Il label bias del Sud è concentrato su **trasformatori** (gap di calibrazione +0.25) e **utenze standard** (+0.21); sulle utenze critiche del Sud è quasi assente (+0.03).
+- **Incertezza delle stime** (D-44): ogni area ha solo 24-43 guasti reali nel test set. Recall con intervallo bootstrap al 95%: Nord 0.71 [0.57-0.89], Centro 0.75 [0.58-0.92], Sud 0.88 [0.76-0.97], Isole 0.93 [0.84-1.00]. Gli intervalli si sovrappongono: il gap di recall è un segnale da monitorare, non una differenza dimostrata.
+- **Gruppi incrociati** (D-45, almeno 15 asset): il gruppo servito peggio sono le **utenze standard di Centro e Nord** (recall 0.65 e 0.68), invisibile guardando area e criticità separatamente. Il label bias del Sud è concentrato su **trasformatori** (gap di calibrazione +0.25) e **utenze standard** (+0.21); sulle utenze critiche del Sud è quasi assente (+0.03).
 - **Proxy residuo**: tolta l'area, le altre caratteristiche la indovinano nel 58% dei casi (contro il 38% del caso), soprattutto tramite giorni dall'ultima manutenzione ed età. Distinguono però a fatica Sud e Isole (67% contro 65%).
 - **Profilo a parità di età**: tra 15 e 25 anni il Sud registra 0.24 guasti contro 0.39 delle Isole, oltre 25 anni 0.28 contro 0.54. I sensori sono uguali: conferma l'ipotesi di sotto-segnalazione (D-04).
-- **Esposizione all'automazione**: prima di D-39 Nord e Centro avevano la quota più alta di auto-esecuzione (70% e 53%) e la recall più bassa; sul test set 6 guasti reali sarebbero stati auto-eseguiti senza revisione. Con D-39 restano 2 (Isole).
+- **Esposizione all'automazione**: prima di D-43 Nord e Centro avevano la quota più alta di auto-esecuzione (70% e 53%) e la recall più bassa; sul test set 6 guasti reali sarebbero stati auto-eseguiti senza revisione. Con D-43 restano 2 (Isole).
 
 ## Spiegazioni
 
@@ -60,7 +60,7 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 
 ## Limiti noti
 
-- Il recall di Nord e Centro (0.71-0.75) resta sotto le altre aree: i guasti mancati non mostrano segnali nei sensori (D-06). La supervisione compensa in parte: in quelle aree l'ispezione di routine non è più auto-eseguita (D-39).
+- Il recall di Nord e Centro (0.71-0.75) resta sotto le altre aree: i guasti mancati non mostrano segnali nei sensori (D-06). La supervisione compensa in parte: in quelle aree l'ispezione di routine non è più auto-eseguita (D-43).
 - Le utenze standard di Nord e Centro hanno il recall più basso (0.65-0.68): effetto combinato della soglia 0.30 e del limite del modello.
 - La sotto-segnalazione al Sud è un'ipotesi; il modello non la può correggere (il problema è nelle etichette). È gestita dalla supervisione: le decisioni del Sud non vengono mai auto-eseguite (D-19).
 - Il drift è simulato: il dataset non ha date (D-26).

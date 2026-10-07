@@ -12,7 +12,7 @@
 | Coda umana che non regge il carico                   | Operatori                 | SLA 30 minuti con escalation; soglia 0.30 invece di 0.20 per non saturare la coda (D-01, D-12)                                             | KPI A5                                                                              |
 | Spiegazione incomprensibile o inventata              | Operatore, giuria         | Riquadro semplice a regole fisse; guardrail e fallback per l'LLM (D-20, D-31..D-34)                                                        | Test T4                                                                             |
 | Log manomesso                                        | Auditor                   | Catena di hash, integrità sempre visibile (D-29, D-30)                                                                                     | Test T6                                                                             |
-| Guasti mancati concentrati dove l'AI agisce da sola  | Utenze di Nord e Centro   | Nelle aree con allerta di recall l'ispezione di routine passa da un umano (D-39); recall con intervallo e gruppi incrociati in dashboard (D-40, D-41) | Guasti reali auto-eseguiti sul test set da 6 a 2; tabelle nella scheda Bias & drift |
+| Guasti mancati concentrati dove l'AI agisce da sola  | Utenze di Nord e Centro   | Nelle aree con allerta di recall l'ispezione di routine passa da un umano (D-43); recall con intervallo e gruppi incrociati in dashboard (D-44, D-45) | Guasti reali auto-eseguiti sul test set da 6 a 2; tabelle nella scheda Bias & drift |
 
 ## Cosa NON abbiamo risolto
 
@@ -24,7 +24,9 @@
 6. **La confidenza scelta è povera**: replica la probabilità. Una misura di accordo tra gli alberi sarebbe più informativa.
 7. **Dipendenza da un fornitore LLM esterno** per i dettagli: mitigata dal fallback, ma il testo può variare tra due chiamate.
 8. **Modello non versionato.** Le dipendenze sono fissate a versioni esatte (D-38) e il risultato è riproducibile, ma `modello.joblib` viene riaddestrato a ogni installazione: in produzione servirebbe un registro dei modelli con versione e firma.
-9. **Le utenze standard di Nord e Centro sono servite peggio** (recall 0.65-0.68): somma della soglia più alta per le utenze standard e dei guasti senza segnali. D-39 aggiunge supervisione, non recall.
-10. **L'area entra ancora nel modello per via indiretta**: età e giorni dall'ultima manutenzione la indovinano nel 58% dei casi. Non la togliamo: sono anche fattori di rischio reali.
-11. **Le differenze tra aree non sono statisticamente solide**: 24-43 guasti per area, intervalli di confidenza sovrapposti. Le allerte vanno lette come segnali.
-12. **Restano 2 guasti reali auto-eseguiti nelle Isole** (rischio 0.14-0.17), area senza allerta. Più carico umano: D-39 aggiunge 83 decisioni HITL su 720 (KPI A5 da sorvegliare).
+9. **Revisori non differenziati per competenza** (D-42): chiunque abbia accesso può decidere anche sulle utenze critiche. Serve definire ruoli e autorizzazioni con l'organizzazione.
+10. **Il tempo di lettura per revisore è approssimato** (D-40): misuriamo l'intervallo tra due decisioni, non il tempo effettivo passato sulla card.
+11. **Le utenze standard di Nord e Centro sono servite peggio** (recall 0.65-0.68): somma della soglia più alta per le utenze standard e dei guasti senza segnali. D-43 aggiunge supervisione, non recall.
+12. **L'area entra ancora nel modello per via indiretta**: età e giorni dall'ultima manutenzione la indovinano nel 58% dei casi. Non la togliamo: sono anche fattori di rischio reali.
+13. **Le differenze tra aree non sono statisticamente solide**: 24-43 guasti per area, intervalli di confidenza sovrapposti. Le allerte vanno lette come segnali.
+14. **Restano 2 guasti reali auto-eseguiti nelle Isole** (rischio 0.14-0.17), area senza allerta. Più carico umano: D-43 aggiunge 83 decisioni HITL su 720 (KPI A5 da sorvegliare).
