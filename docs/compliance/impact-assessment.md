@@ -21,7 +21,7 @@
 | ---- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | R1   | Threshold 0.20 for high/critical users; HIC for every critical user                                                  | FN critical/high 3/6 → 1/1                                   |
 | R2   | Calibration alert > 0.10 promotes the area from HOTL to HITL                                                         | South promoted; no auto-execution in the South               |
-| R3   | `area_geografica` removed from the model                                                                             | AUC 0.862 → 0.868; FPR Islands 0.689 → 0.622                 |
+| R3   | `area_geografica` removed from the model                                                                             | AUC 0.862 → 0.868; FPR Islands 0.667 → 0.622                 |
 | R4   | Removing area plus differentiated thresholds                                                                         | Recall gap 0.411 → 0.216; Centre 0.542 → 0.750               |
 | R5   | Justification ≥ 15 chars, duplicates rejected, rubber-stamping index A4, review time A3                              | Measured live in the KPI tab                                 |
 | R6   | Single execution point with assertions; stop also freezes the existing queue                                         | Tests T1, T3 passed                                          |
@@ -31,14 +31,14 @@
 | R10  | Recall-gap alert: no auto-execution above p = 0.10 in the area; recall CI and intersectional tables in the dashboard | Real failures auto-executed 6 → 2; +84 HITL decisions on 720 |
 
 **Cost of the mitigation package:** 30 more unnecessary inspections
-(152 → 183) for 5 fewer missed failures (26 → 21), consistent with the
+(153 → 183) for 5 fewer missed failures (26 → 21), consistent with the
 declared 10:1 cost ratio.
 
 ## What we have NOT solved
 
 !!! danger "Open issues" 1. **The label bias in the South is managed, not removed.** Removing
 the area made the South calibration gap slightly worse
-(0.158 → 0.178), because age and maintenance history act as proxies.
+(0.159 → 0.177), because age and maintenance history act as proxies.
 Only a field check of recording practices can confirm or rule out
 under-reporting. 2. **We cannot tell under-reporting from different recording processes.**
 Both hypotheses fit the data. 3. **Recall gap in the North (0.216) is still above the 0.15 alert.**

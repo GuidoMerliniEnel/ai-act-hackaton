@@ -84,7 +84,7 @@ dashboard before running it again.
   failure vs an unnecessary inspection.
 - **Hidden bias found:** South and Islands have almost identical profiles,
   but recorded failure rates are 0.24 vs 0.45. Hypothesis: failures are
-  under-reported in the South, the only badly calibrated area (gap 0.178).
+  under-reported in the South, the only badly calibrated area (gap 0.177).
 - **Mitigations, measured before and after:**
   - `area_geografica` removed from the model: recall gap between areas
     0.41 → 0.22.

@@ -30,13 +30,13 @@ Sistema di manutenzione predittiva con supervisione umana per asset critici dell
 
 | Globale | AUC   | Recall | Precision | Accuracy | Guasti mancati | Ispezioni inutili |
 | ------- | ----- | ------ | --------- | -------- | -------------- | ----------------- |
-| Valore  | 0.868 | 0.837  | 0.372     | 0.718    | 21             | 183               |
+| Valore  | 0.868 | 0.837  | 0.371     | 0.717    | 21             | 183               |
 
 | Area   | Recall | FPR   | Gap calibrazione    |
 | ------ | ------ | ----- | ------------------- |
-| Nord   | 0.714  | 0.143 | 0.062               |
+| Nord   | 0.714  | 0.147 | 0.062               |
 | Centro | 0.750  | 0.242 | 0.064               |
-| Sud    | 0.882  | 0.688 | **0.178** (allerta) |
+| Sud    | 0.882  | 0.688 | **0.177** (allerta) |
 | Isole  | 0.930  | 0.622 | −0.033              |
 
 | Tipo asset      | Recall | Criticità utenza | Recall |

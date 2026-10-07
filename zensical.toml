@@ -35,6 +35,7 @@ nav = [
     { "Verification Tests" = "quality/verification-tests.md" },
   ] },
   { Decisions = "decisions/index.md" },
+  { Presentation = "presentation/index.md" },
   { Project = [
     { Contributing = "project/contributing.md" },
     { Security = "project/security.md" },
