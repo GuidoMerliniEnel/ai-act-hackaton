@@ -130,6 +130,13 @@ verifica("T5", bool(cal.loc["Sud", "allerta"]) and basso.livello.value == "HITL"
          f"Sud eta' {prof.loc['Sud', 'eta_anni']} vs Isole {prof.loc['Isole', 'eta_anni']}, guasti registrati "
          f"{prof.loc['Sud', 'guasto_entro_30gg']} vs {prof.loc['Isole', 'guasto_entro_30gg']}; gap calibrazione Sud "
          f"{cal.loc['Sud', 'gap_calibrazione']}; decisione HOTL del Sud promossa a {basso.livello.value}")
+vigilate = bd.gruppi_recall_basso(bd.metriche_per_gruppo(pred, "area_geografica"), "area_geografica")
+om.imposta_vigilanza(vigilate, "gap di recall")
+routine = om.sottometti(rac("AST-T5b", "trasformatore", "Nord", p=0.15, c=0.85, azione="ispezione_routine"))
+minimo = om.sottometti(rac("AST-T5c", "trasformatore", "Nord", p=0.05, c=0.95, azione="nessuna_azione"))
+verifica("T5 recall basso", "Nord" in vigilate and routine.livello.value == "HITL"
+         and minimo.livello.value == "HOTL" and om.kpi()["A6_copertura_routing"] == 1.0,
+         f"aree vigilate {vigilate}; Nord p=0.15 -> {routine.livello.value}, p=0.05 -> {minimo.livello.value}; A6 = 100%")
 
 print("\nT6 · Audit a ritroso")
 om, log, _ = nuovo_sistema()

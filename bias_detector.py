@@ -16,6 +16,7 @@ DECISIONI del team:
      ipotesi di sotto-segnalazione al Sud, confermata dal solo gap di calibrazione del Sud.
 """
 
+import numpy as np
 import pandas as pd
 from typing import Optional
 from sklearn.metrics import (accuracy_score, precision_score, recall_score,
@@ -88,6 +89,47 @@ class BiasDetector:
 
     def gruppi_da_promuovere(self, calibrazione: pd.DataFrame, col_gruppo: str) -> list[str]:
         return calibrazione.loc[calibrazione["allerta"], col_gruppo].tolist()
+
+    def gruppi_recall_basso(self, metriche: pd.DataFrame, col_gruppo: str) -> list[str]:
+        """Gruppi con gap di recall oltre soglia rispetto al migliore (D-39)."""
+        m = metriche.dropna(subset=["recall"])
+        return sorted(m.loc[m["recall"].max() - m["recall"] > self.soglia_gap_recall, col_gruppo])
+
+    @staticmethod
+    def recall_con_intervallo(df: pd.DataFrame, col_gruppo: str, n_boot: int = 500,
+                              col_y: str = "y_true", col_pred: str = "y_pred") -> pd.DataFrame:
+        """DECISIONE (D-40): recall con intervallo bootstrap al 95%, pochi guasti per area = stime incerte."""
+        righe = []
+        for gruppo, sub in df.groupby(col_gruppo):
+            pos = sub[sub[col_y] == 1][col_pred].to_numpy()
+            if len(pos) == 0:
+                continue
+            rng = np.random.default_rng(0)
+            campioni = rng.choice(pos, size=(n_boot, len(pos)), replace=True).mean(axis=1)
+            basso, alto = np.percentile(campioni, [2.5, 97.5])
+            righe.append({col_gruppo: gruppo, "guasti_reali": len(pos), "recall": round(pos.mean(), 3),
+                          "ic95_basso": round(basso, 2), "ic95_alto": round(alto, 2)})
+        return pd.DataFrame(righe).sort_values("recall")
+
+    def metriche_incrociate(self, df: pd.DataFrame, col_a: str, col_b: str, n_min: int = 15,
+                            col_y: str = "y_true", col_pred: str = "y_pred",
+                            col_proba: str = "proba") -> pd.DataFrame:
+        """DECISIONE (D-41): metriche per incrocio di due gruppi; sotto n_min il gruppo non e' mostrato."""
+        righe = []
+        for (a, b), sub in df.groupby([col_a, col_b]):
+            if len(sub) < n_min:
+                continue
+            pos, neg = sub[sub[col_y] == 1], sub[sub[col_y] == 0]
+            righe.append({col_a: a, col_b: b, "n": len(sub), "guasti_reali": len(pos),
+                          "recall": round(pos[col_pred].mean(), 2) if len(pos) else None,
+                          "fpr": round(neg[col_pred].mean(), 2) if len(neg) else None,
+                          "gap_calibrazione": round(sub[col_proba].mean() - sub[col_y].mean(), 2)})
+        out = pd.DataFrame(righe)
+        if out.empty:
+            return out
+        out["allerta"] = ((out["recall"].max() - out["recall"] > self.soglia_gap_recall)
+                          | (out["gap_calibrazione"].abs() > self.soglia_gap_calibrazione))
+        return out.sort_values("recall")
 
     @staticmethod
     def drift_settimanale(df: pd.DataFrame, n_settimane: int = 12) -> pd.DataFrame:

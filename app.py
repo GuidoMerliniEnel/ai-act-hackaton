@@ -42,6 +42,9 @@ def bootstrap():
     if bd.allerta_drift(bd.drift_settimanale(pred), accuracy_rif):
         promosse = sorted(pred["area_geografica"].unique())   # DECISIONE: drift = nessuna auto-esecuzione ovunque
     om.imposta_promozioni(promosse, "allerta di calibrazione o di drift (vedi scheda Bias & drift)")
+    om.imposta_vigilanza(bd.gruppi_recall_basso(bd.metriche_per_gruppo(pred, "area_geografica"),
+                                                "area_geografica"),
+                         "gap di recall oltre soglia (vedi scheda Bias & drift)")
     # DECISIONE: 40 positive + 8 a basso rischio, altrimenti il ramo HOTL non viene mai esercitato
     campione = pd.concat([pred[pred["y_pred"] == 1].head(40),
                           pred[pred["proba"] < 0.2].head(8)])
@@ -259,7 +262,9 @@ with tab_matrice:
     c3.metric("HOTL · AI agisce, umano monitora", int(conteggi.get("HOTL", 0)))
     st.caption(f"Linee tratteggiate: soglia di confidenza {om.soglia_conf} e di rischio {om.soglia_rischio}. "
                "Il rosso (utenze critiche) è sempre HIC, ovunque cada. "
-               f"Aree senza auto-esecuzione per allerta: {', '.join(sorted(om.aree_promosse)) or 'nessuna'}.")
+               f"Aree senza auto-esecuzione per allerta: {', '.join(sorted(om.aree_promosse)) or 'nessuna'}. "
+               f"Aree con recall basso, HOTL solo sotto rischio {om.soglia_vigilanza}: "
+               f"{', '.join(sorted(om.aree_vigilate)) or 'nessuna'}.")
 
 # ----------------------------------------------------------------------
 with tab_bias:
@@ -269,6 +274,25 @@ with tab_bias:
     st.dataframe(m, width="stretch")
     for a in bd.allerte(m, "area_geografica"):
         st.warning(a)
+    st.subheader("Recall per area con intervallo di confidenza al 95%")
+    st.dataframe(bd.recall_con_intervallo(valut, "area_geografica"), width="stretch")
+    st.caption("Pochi guasti reali per area (24-43): intervalli larghi e sovrapposti. "
+               "Il gap di recall e' un segnale da monitorare, non una differenza dimostrata.")
+    if om.aree_vigilate:
+        st.info(f"Aree con recall basso ({', '.join(sorted(om.aree_vigilate))}): le decisioni con rischio "
+                f">= {om.soglia_vigilanza} vanno in HITL invece che in HOTL (D-39).")
+
+    st.subheader("Gruppi incrociati (almeno 15 asset)")
+    k1, k2 = st.columns(2)
+    k1.caption("Area × criticità dell'utenza")
+    k1.dataframe(bd.metriche_incrociate(valut, "area_geografica", "criticita_utenza"),
+                 width="stretch", hide_index=True)
+    k2.caption("Area × tipo di asset")
+    k2.dataframe(bd.metriche_incrociate(valut, "area_geografica", "tipo_asset"),
+                 width="stretch", hide_index=True)
+    st.caption("Un gruppo puo' stare bene su ogni asse preso da solo e male nell'incrocio: "
+               "es. utenze standard di Nord e Centro (recall piu' basso) o trasformatori del Sud "
+               "(gap di calibrazione piu' alto).")
     st.subheader("Calibrazione per area")
     cal = bd.calibrazione_per_gruppo(valut, "area_geografica")
     st.dataframe(cal, width="stretch")

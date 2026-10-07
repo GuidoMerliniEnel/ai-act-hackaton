@@ -58,6 +58,9 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 | D-36 | Riquadri `!!!` del sito protetti con `<!-- prettier-ignore-start/end -->`                                                                                            | Il formatter al salvataggio toglieva il rientro: i 9 limiti dichiarati della model card inglese sarebbero finiti attaccati al titolo. Corretti anche 3 riquadri già rotti                                                | Tecnica             | `docs/`                                   |
 | D-37 | Spiegazione generata una sola volta per decisione e conservata nella sessione; modello, dati e TreeExplainer caricati una volta per processo                         | Prima ogni click rifaceva le 10 chiamate LLM (circa 5 s) e le registrava di nuovo nel log. Ora un rerun della coda costa circa 0.1 s; la spiegazione mostrata è quella già registrata                                    | Tecnica             | `app.py` coda, `_risorse_modello`         |
 | D-38 | Dipendenze fissate a versioni esatte in `requirements.txt` (Python ≥ 3.12); numeri della consegna e del sito ricalcolati                                             | Con versioni libere scikit-learn diversi davano un modello diverso: 182 o 183 falsi positivi, 7 o 8 decisioni bloccate dallo stop. Ora la demo mostra esattamente i numeri dei documenti                                 | Tecnica             | `requirements.txt`                        |
+| D-39 | Nelle aree con allerta di gap di recall le decisioni con rischio ≥ 0.10 vanno in HITL invece che in HOTL                                                             | Nord e Centro hanno il recall più basso e la quota più alta di auto-esecuzione: sul test set 6 guasti reali sarebbero stati auto-eseguiti, ora 2. Costo: 83 decisioni HITL in più su 720                                 | Tecnica             | `route`, `imposta_vigilanza`              |
+| D-40 | Recall per area con intervallo bootstrap al 95% in dashboard e model card                                                                                            | Solo 24-43 guasti per area: gli intervalli si sovrappongono, il gap di recall è un segnale e non una differenza dimostrata                                                                                               | Tecnica             | `recall_con_intervallo`                   |
+| D-41 | Metriche per gruppi incrociati (area × criticità, area × tipo), almeno 15 asset per gruppo                                                                           | Un gruppo può stare bene su ogni asse e male nell'incrocio: utenze standard di Nord e Centro recall 0.65-0.68; trasformatori del Sud gap di calibrazione +0.25                                                           | Tecnica             | `metriche_incrociate`                     |
 
 ## Cronologia git
 
@@ -86,7 +89,8 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `bab5b46` | Formattazione automatica e riquadri del sito protetti (D-36)        |
 | `8a63728` | README con tutto il lavoro svolto, script `run_dashboard.sh`/`.bat` |
 | `e48ceab` | TODO residui chiusi; spiegazioni in cache di sessione (D-37)        |
-| (questo)  | Dipendenze a versioni esatte; numeri riallineati (D-38)             |
+| `642684d` | Dipendenze a versioni esatte; numeri riallineati (D-38)             |
+| (questo)  | Analisi approfondita del bias e vigilanza su Nord/Centro (D-39..41) |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 
@@ -265,6 +269,7 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
 - Tier 4: documenti ufficiali di consegna in `consegna/` (model card, relazione d'impatto, Dichiarazione di oversight, scaletta demo e risposte ai test); `prova_test_giuria.py` 8/8. Versione inglese di supporto in `docs/compliance/` (sito Zensical).
 - Revisione dei documenti (7 ottobre): numeri ricalcolati da `predizioni.csv`; corretto il numero di caratteristiche (10, non 11); la scaletta usa `run_dashboard.sh`. Le differenze tra macchine (182/183 falsi positivi, 7/8 decisioni bloccate dallo stop) venivano dalle versioni libere delle librerie: risolte fissando le versioni (D-38) e riallineando consegna, sito e README. Prova della demo sul campione: AST-01148 (cabina primaria critica del Sud, 0.647) è HIC tra le prime 10 card, Sud promosso, A6 = 100%.
 - Resta solo la prova della demo a voce, sulla macchina della demo.
+- Analisi approfondita del bias (7 ottobre): intervalli di confidenza, gruppi incrociati, proxy residuo, esposizione all'automazione per area. Implementati D-39 (vigilanza su Nord e Centro), D-40 (recall con intervallo), D-41 (gruppi incrociati); nuovi limiti dichiarati in model card e relazione d'impatto. `prova_test_giuria.py` 9/9.
 
 ## Allineamento OSPO
 

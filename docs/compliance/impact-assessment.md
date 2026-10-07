@@ -13,6 +13,7 @@
 | R7 | Audit trail edited without detection                                                   | High     | Plain JSONL is editable                                        |
 | R8 | LLM invents numbers or is unavailable                                                  | Medium   | Empty responses observed with 400 output tokens                |
 | R9 | Performance drift over time                                                            | Medium   | Weekly accuracy oscillates ±0.08                               |
+| R10 | Missed failures concentrated where the AI acts alone                                 | High     | North/Centre: lowest recall and 70%/53% auto-execution; 6 real failures auto-executed on the test set |
 
 ## Mitigations implemented
 
@@ -27,6 +28,7 @@
 | R7   | SHA-256 hash chain, integrity always visible                                               | Edit at record 403 detected (test T6)               |
 | R8   | Guardrails, template fallback, declared source                                             | 10/10 LLM explanations, 0 fallbacks in the demo     |
 | R9   | Drift alert: 2 consecutive weeks below reference − 0.10 disables HOTL everywhere           | Triggers in simulation; not on current data         |
+| R10  | Recall-gap alert: no auto-execution above p = 0.10 in the area; recall CI and intersectional tables in the dashboard | Real failures auto-executed 6 → 2; +83 HITL decisions on 720 |
 
 **Cost of the mitigation package:** 30 more unnecessary inspections
 (152 → 182) for 5 fewer missed failures (26 → 21), consistent with the
@@ -59,3 +61,13 @@ declared 10:1 cost ratio.
     10. **The LLM depends on an external provider**, which adds
         non-determinism. Fallback keeps the dashboard working, but wording
         may differ between runs.
+    11. **Standard users in North and Centre are served worst** (recall
+        0.65–0.68). D-39 adds oversight, not recall.
+    12. **Area still leaks in indirectly**: age and days since maintenance
+        predict it 58% of the time. We keep them because they are real risk
+        factors.
+    13. **Per-area differences are not statistically solid**: 24–43
+        failures per area, overlapping confidence intervals.
+    14. **Two real failures in the Islands are still auto-executed**
+        (risk 0.14–0.17), an area with no alert. D-39 also adds 83 HITL
+        decisions on 720: KPI A5 must be watched.

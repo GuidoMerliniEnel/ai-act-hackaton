@@ -31,6 +31,7 @@ Trains a `RandomForestClassifier` (300 trees, balanced class weights,
 | `risottometti()`       | Re-enters a blocked decision as a new one, evaluated from scratch                 |
 | `controlla_sla()`      | Moves pending decisions past 30 minutes to `ESCALATION`                           |
 | `imposta_promozioni()` | Areas where HOTL is forbidden because of an alert                                 |
+| `imposta_vigilanza()`  | Areas with a recall-gap alert: HOTL only below p = 0.10 ([D-39](../decisions/index.md#d-39)) |
 | `_esegui()`            | **Only** execution point                                                          |
 | `kpi()`                | KPIs A1–A6 and level distribution                                                 |
 | `override_per_area()`  | Override rate per area with alert                                                 |
@@ -43,6 +44,9 @@ Trains a `RandomForestClassifier` (300 trees, balanced class weights,
 | `allerte()`                             | Recall gap > 0.15, selection gap > 0.20                               |
 | `calibrazione_per_gruppo()`             | Mean predicted probability vs observed rate                           |
 | `gruppi_da_promuovere()`                | Groups with calibration gap > 0.10                                    |
+| `gruppi_recall_basso()`                 | Groups with recall gap > 0.15, watched by the routing (D-39)          |
+| `recall_con_intervallo()`               | Recall with 95% bootstrap interval per group (D-40)                   |
+| `metriche_incrociate()`                 | Recall, FPR and calibration for two crossed groups, n ≥ 15 (D-41)     |
 | `drift_settimanale()` / `allerta_drift()` | 12 simulated weeks; alert after 2 consecutive weeks below reference − 0.10 |
 
 ## `explainer.py`

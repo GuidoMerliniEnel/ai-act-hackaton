@@ -51,7 +51,7 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python train_baseline.py        # modello.joblib + predizioni.csv, prints fairness report
 streamlit run app.py            # dashboard
-python prova_test_giuria.py     # rehearsal of the 6 jury tests (expect 8/8)
+python prova_test_giuria.py     # rehearsal of the 6 jury tests (expect 9/9)
 python test_llm.py              # explanation engine: template and LLM
 ```
 
@@ -79,8 +79,8 @@ python test_llm.py              # explanation engine: template and LLM
 - **Routing matrix** in `route()`, plus an independent copy in
   `livello_dichiarato()`; KPI A6 checks they agree.
   - HIC: critical users, or load reduction on high users.
-  - HITL: p ≥ 0.60, confidence < 0.80, an alerted area, or a non-light
-    action.
+  - HITL: p ≥ 0.60, confidence < 0.80, an alerted area, p ≥ 0.10 in a
+    low-recall area (North, Centre), or a non-light action.
   - HOTL: low-risk routine only.
 - **Single execution point** `_esegui`. It rejects pending, rejected,
   stopped and HIC auto-executed decisions.
@@ -118,7 +118,21 @@ python test_llm.py              # explanation engine: template and LLM
   back to the fleet median and says whether the intervention would still
   be needed. This is a contrastive explanation.
 - **`prova_test_giuria.py`:** repeatable rehearsal of tests T1–T6 on
-  temporary logs. Result: 8/8.
+  temporary logs. Result: 9/9.
+
+### Deep bias audit (D-39..D-41)
+
+- **Recall with 95% intervals** per area: with 24–43 failures per area
+  the intervals overlap, so the gaps are signals, not proven differences.
+- **Intersectional groups** (area × criticality, area × asset type):
+  - Standard users in the North and Centre are the worst served
+    (recall 0.65–0.68).
+  - The South label bias is concentrated on transformers (+0.25) and
+    standard users (+0.21).
+- **Watch rule:** where the recall-gap alert is on, decisions with risk
+  of 0.10 or more go to HITL. On the test set this cuts real failures
+  auto-executed without review from 6 to 2, for 83 more human reviews
+  out of 720.
 - **Submission documents** in [`consegna/`](consegna/):
 
 | Document | Content |
@@ -128,7 +142,7 @@ python test_llm.py              # explanation engine: template and LLM
 | [3_Dichiarazione_Oversight.md](consegna/3_Dichiarazione_Oversight.md) | Routing matrix with justifications |
 | [4_Scaletta_Demo_e_Test.md](consegna/4_Scaletta_Demo_e_Test.md) | 5–7 min demo script and answers to tests T1–T6 |
 
-Every decision (D-01..D-38) is recorded with its rationale in
+Every decision (D-01..D-41) is recorded with its rationale in
 [TRACCIAMENTO_MODIFICHE.md](TRACCIAMENTO_MODIFICHE.md) and cited in the
 code as `DECISIONE:` comments.
 
@@ -213,7 +227,7 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 ├── prova_test_giuria.py        # rehearsal of jury tests T1–T6
 ├── test_llm.py                 # explanation engine smoke test
 ├── consegna/                   # Tier 4 submission documents
-├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-38
+├── TRACCIAMENTO_MODIFICHE.md   # decision log D-01..D-41
 ├── zensical.toml               # documentation site configuration
 ├── requirements.txt            # application dependencies
 ├── requirements-docs.txt       # documentation dependencies
@@ -225,8 +239,14 @@ to `main`. One-time setup: **Settings → Pages → Source: GitHub Actions**.
 Detailed in the model card and impact report. In brief:
 
 - The recall gap in the North (0.216) remains: those failures show no
-  sensor signal.
+  sensor signal. The watch rule (D-39) adds human review, not recall.
+- Standard users in the North and Centre are served worst (recall
+  0.65–0.68).
 - The South label bias is managed by oversight, not removed.
+- Area still leaks in indirectly through age and maintenance history.
+- Per-area gaps rest on 24–43 failures each and are not statistically
+  solid.
+- Two real failures in the Islands are still auto-executed.
 - Confidence `max(p, 1-p)` adds little beyond the probability.
 - Drift is simulated, because the dataset has no dates.
 - Operator identity is self-declared.

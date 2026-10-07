@@ -42,6 +42,12 @@ thresholds drawn as dashed lines ([D-25](../decisions/index.md#d-25)).
 ### Bias & drift
 
 - Disaggregated metrics by area and asset type, with recall-gap alerts.
+- Recall per area with a 95% bootstrap interval
+  ([D-40](../decisions/index.md#d-40)). Areas with a recall-gap alert are
+  watched: decisions with risk ≥ 0.10 go to HITL
+  ([D-39](../decisions/index.md#d-39)).
+- Intersectional tables, area × criticality and area × asset type, for
+  groups of at least 15 assets ([D-41](../decisions/index.md#d-41)).
 - Calibration per area. Areas above the 0.10 gap are promoted from HOTL to
   HITL ([D-19](../decisions/index.md#d-19)).
 - Accuracy, recall and mean confidence over 12 simulated weeks, with a

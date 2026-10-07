@@ -23,8 +23,9 @@ Rules are evaluated **in order**; the first match wins.
 | 2 | Action = `riduci_carico` **and** criticality = `alta`                       | <span class="level hic">HIC</span> | Load reduction on a high-criticality user interrupts service |
 | 3 | Probability ≥ 0.60 **or** confidence < 0.80                                 | <span class="level hitl">HITL</span> | High risk or an uncertain model: a human must judge |
 | 4 | Area under an active calibration or drift alert                             | <span class="level hitl">HITL</span> | Possible label bias or degraded performance: no auto-execution ([D-19](../decisions/index.md#d-19), [D-27](../decisions/index.md#d-27)) |
-| 5 | Action is light (`nessuna_azione`, `ispezione_routine`)                     | <span class="level hotl">HOTL</span> | Low cost, reversible: the AI acts alone |
-| 6 | Anything else                                                               | <span class="level hitl">HITL</span> | Prudent default |
+| 5 | Area under a recall-gap alert **and** probability ≥ 0.10                  | <span class="level hitl">HITL</span> | Where the model misses more failures (today North and Centre), routine inspections are reviewed by a human ([D-39](../decisions/index.md#d-39)) |
+| 6 | Action is light (`nessuna_azione`, `ispezione_routine`)                     | <span class="level hotl">HOTL</span> | Low cost, reversible: the AI acts alone |
+| 7 | Anything else                                                               | <span class="level hitl">HITL</span> | Prudent default |
 
 ```mermaid
 flowchart TD
@@ -34,9 +35,11 @@ flowchart TD
     C2 -- yes --> HIC
     C2 -- no --> C3{p ≥ 0.60 or<br/>conf < 0.80?}
     C3 -- yes --> HITL[HITL]
-    C3 -- no --> C4{area under<br/>alert?}
+    C3 -- no --> C4{calibration or<br/>drift alert?}
     C4 -- yes --> HITL
-    C4 -- no --> C5{light action?}
+    C4 -- no --> C4b{recall alert<br/>and p ≥ 0.10?}
+    C4b -- yes --> HITL
+    C4b -- no --> C5{light action?}
     C5 -- yes --> HOTL[HOTL]
     C5 -- no --> HITL
     classDef hic fill:#eb0a00,color:#fff
@@ -54,6 +57,7 @@ flowchart TD
 | High-risk probability        | 0.60   | `OversightManager(soglia_rischio_alto)` |
 | High confidence              | 0.80   | `OversightManager(soglia_confidenza_alta)` |
 | Calibration alert            | 0.10   | `BiasDetector(soglia_gap_calibrazione)` |
+| Recall-gap alert / watch threshold | 0.15 gap / p ≥ 0.10 | `BiasDetector(soglia_gap_recall)`, `OversightManager.soglia_vigilanza` |
 | Drift alert                  | reference accuracy − 0.10 for 2 consecutive weeks | `BiasDetector.allerta_drift` |
 | SLA before escalation        | 30 min | `OversightManager(sla_minuti)`          |
 | Minimum justification length | 15 characters | `revisiona`, `attiva_stop`, `disattiva_stop`, `risottometti` |
@@ -61,8 +65,11 @@ flowchart TD
 !!! note "What HOTL means in practice"
     With confidence = `max(p, 1-p)`, confidence ≥ 0.80 and p < 0.60 together
     mean p ≤ 0.20. HOTL therefore applies only to standard or high
-    users with failure probability ≤ 0.20, outside alerted areas. On the
-    test set the split is 60 HIC, 339 HITL and 321 HOTL.
+    users with failure probability ≤ 0.20, outside alerted areas, and in
+    North and Centre only below 0.10. On the test set the split is 60 HIC,
+    422 HITL and 238 HOTL. Rule 5 moves 83 decisions from HOTL to HITL and
+    cuts real failures auto-executed without review from 6 to 2 (both in
+    the Islands).
 
 ## Proposed action
 

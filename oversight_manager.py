@@ -88,6 +88,17 @@ class OversightManager:
         self.storico_hotl: list[Raccomandazione] = []
         self.stop_attivi: set[str] = set()   # es. {"area:Sud", "tipo:linea_AT", "GLOBALE"}
         self.aree_promosse: set[str] = set()
+        self.aree_vigilate: set[str] = set()   # aree con allerta di gap di recall (D-39)
+        self.soglia_vigilanza = 0.10
+
+    def imposta_vigilanza(self, aree: list[str], motivo: str):
+        """Aree con recall basso: niente auto-esecuzione sopra soglia_vigilanza."""
+        nuove = set(aree)
+        if nuove != self.aree_vigilate:
+            self.audit.log("SISTEMA", "vigilanza_recall_basso", None,
+                           extra={"aree": sorted(nuove), "soglia": self.soglia_vigilanza,
+                                  "motivo": motivo})
+        self.aree_vigilate = nuove
 
     def imposta_promozioni(self, aree: list[str], motivo: str):
         """Aree in cui un'allerta (es. calibrazione) vieta l'auto-esecuzione HOTL."""
@@ -106,8 +117,9 @@ class OversightManager:
           1. utenza critica, o riduci_carico su utenza alta/critica -> HIC
           2. rischio >= soglia_rischio o confidenza < soglia_conf -> HITL
           3. area con allerta di calibrazione o drift (D-19, D-27) -> HITL
-          4. azione leggera (nessuna_azione, ispezione_routine)     -> HOTL
-          5. altrimenti                                             -> HITL
+          4. area con allerta di recall e rischio >= 0.10 (D-39)    -> HITL
+          5. azione leggera (nessuna_azione, ispezione_routine)     -> HOTL
+          6. altrimenti                                             -> HITL
         Stessa matrice di livello_dichiarato() e di consegna/3_Dichiarazione_Oversight.md.
         """
         if r.criticita_utenza == "critica" or (
@@ -117,6 +129,8 @@ class OversightManager:
             livello = LivelloSupervisione.HITL
         elif r.area_geografica in self.aree_promosse:
             livello = LivelloSupervisione.HITL   # DECISIONE: area con allerta di bias, niente auto-esecuzione
+        elif r.area_geografica in self.aree_vigilate and r.prob_guasto >= self.soglia_vigilanza:
+            livello = LivelloSupervisione.HITL   # DECISIONE (D-39): dove il modello manca piu' guasti, l'umano li rivede
         elif r.azione_proposta in ("nessuna_azione", "ispezione_routine"):
             livello = LivelloSupervisione.HOTL
         else:
@@ -341,6 +355,8 @@ class OversightManager:
             return LivelloSupervisione.HIC
         leggera = r.azione_proposta in ("nessuna_azione", "ispezione_routine")
         if r.area_geografica in self.aree_promosse:
+            return LivelloSupervisione.HITL
+        if r.area_geografica in self.aree_vigilate and r.prob_guasto >= self.soglia_vigilanza:
             return LivelloSupervisione.HITL
         if r.prob_guasto < self.soglia_rischio and r.confidenza >= self.soglia_conf and leggera:
             return LivelloSupervisione.HOTL

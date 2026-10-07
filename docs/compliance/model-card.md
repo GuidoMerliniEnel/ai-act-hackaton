@@ -82,6 +82,53 @@ Alert threshold: 0.10.
 | alta        | 198 | 0.971  | 0.421 |
 | critica     | 60  | 0.929  | 0.391 |
 
+## Deep bias analysis
+
+### Uncertainty of per-area estimates ([D-40](../decisions/index.md#d-40))
+
+Each area has only 24–43 real failures in the test set. Recall with a
+95% bootstrap interval:
+
+| Area   | Real failures | Recall | 95% CI      |
+| ------ | ------------- | ------ | ----------- |
+| Nord   | 28            | 0.714  | 0.57 – 0.89 |
+| Centro | 24            | 0.750  | 0.58 – 0.92 |
+| Sud    | 34            | 0.882  | 0.76 – 0.97 |
+| Isole  | 43            | 0.930  | 0.84 – 1.00 |
+
+The intervals overlap: the 0.216 recall gap is a signal to monitor, not a
+proven difference.
+
+### Intersectional groups ([D-41](../decisions/index.md#d-41))
+
+Groups with at least 15 assets. A group can look fine on each axis and
+badly at the intersection.
+
+| Group                       | n   | Recall | FPR  | Calibration gap |
+| --------------------------- | --- | ------ | ---- | --------------- |
+| Centro · standard           | 122 | 0.65   | 0.17 | +0.05           |
+| Nord · standard             | 200 | 0.68   | 0.12 | +0.06           |
+| Sud · standard              | 86  | 0.76   | 0.67 | **+0.21**       |
+| Sud · trasformatore         | 48  | 0.88   | 0.70 | **+0.25**       |
+| Sud · critica               | 16  | 1.00   | 0.67 | +0.03           |
+
+- Standard users in the North and Centre are the worst-served group.
+- The South label bias is concentrated on transformers and standard users;
+  it is almost absent on critical users.
+
+### Residual proxy
+
+Without `area_geografica`, the other features still predict the area 58%
+of the time (38% by chance), mainly through days since last maintenance
+and age. They barely separate the South from the Islands (67% vs 65%).
+
+### Exposure to automation
+
+Before [D-39](../decisions/index.md#d-39), North and Centre had the
+highest share of auto-execution (70% and 53%) and the lowest recall: 6
+real failures on the test set would have been auto-executed without
+review. With D-39 two remain, both in the Islands.
+
 ## Known limitations
 
 <!-- prettier-ignore-start -->
@@ -90,7 +137,13 @@ Alert threshold: 0.10.
     - **Recall gap North (0.216 > 0.15).** Missed failures in the North and
       Centre show no sensor signal (mean vibration 2.8 vs 4.6). The model is
       well calibrated there, so this is a model limit, not label bias
-      ([D-06](../decisions/index.md#d-06)).
+      ([D-06](../decisions/index.md#d-06)). Oversight compensates in part:
+      routine inspections there are no longer auto-executed
+      ([D-39](../decisions/index.md#d-39)).
+    - **Standard users in North and Centre** have the lowest recall
+      (0.65–0.68): the 0.30 threshold and the model limit add up.
+    - **Per-area differences are not statistically solid** (24–43
+      failures per area, overlapping 95% intervals).
     - **South calibration gap (0.178).** Probably caused by under-reported
       failures. It cannot be fixed in the model because the bias is in the
       labels; it is managed by oversight, and South decisions are promoted
