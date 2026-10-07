@@ -16,7 +16,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > Qui in alto l'operatore vede sempre lo stato: decisioni in attesa, override, copertura delle spiegazioni, allerte di fairness e integrità del log.
 
-*Tier 1 (soglia giustificata) · Art. 14: capire e monitorare · KPI in dashboard*
+_Tier 1 (soglia giustificata) · Art. 14: capire e monitorare · KPI in dashboard_
 
 ---
 
@@ -30,7 +30,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 >
 > Il routing applica una matrice dichiarata. **HIC** per le utenze critiche: decide solo l'umano, sempre. **HITL** se il rischio supera 0.60 o la confidenza è sotto 0.80. **HOTL**, cioè l'AI agisce da sola, solo per azioni di routine con rischio sotto 0.20. Questa decisione è HIC.
 
-*Tier 2A (matrice di routing con soglie)*
+_Tier 2A (matrice di routing con soglie)_
 
 ### Spiegazione e incertezza
 
@@ -40,7 +40,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 >
 > I dettagli per l'esperto mostrano i tre fattori con la loro direzione e la **fonte** della spiegazione: oggi il template; con l'LLM attivo resta lo stesso schema, con guardrail e ritorno automatico al template.
 
-*Tier 3A (spiegabilità, incertezza visibile) · test T4*
+_Tier 3A (spiegabilità, incertezza visibile) · test T4_
 
 ### Giudizio umano
 
@@ -52,7 +52,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > Con una motivazione vera la decisione esce dalla coda e **non viene eseguita**. Nel codice c'è **un solo punto di esecuzione**, `_esegui`: una decisione rifiutata, in attesa, sotto stop o HIC non può arrivarci. Se nessuno decide entro 30 minuti, va in escalation: mai eseguita in silenzio.
 
-*Tier 2B (coda, motivazione, SLA) · test T1, T2*
+_Tier 2B (coda, motivazione, SLA) · test T1, T2_
 
 ### Audit trail
 
@@ -60,7 +60,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > Chi ha deciso, cosa, quando e perché: lo ricostruiamo in pochi secondi, senza aprire il file. Ogni riga contiene l'hash della precedente: se qualcuno modifica una motivazione, la catena si rompe e lo vediamo in ogni schermata.
 
-*Tier 3C (audit filtrabile, integrità) · test T6*
+_Tier 3C (audit filtrabile, integrità) · test T6_
 
 ### Fermare il sistema
 
@@ -68,7 +68,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > Ultimo passo: un incidente sulle linee AT del Sud. Lo stop funziona **globale, per area, per tipo di asset o combinato**. Fermiamo solo queste: un click più una conferma. Le **7 decisioni** in coda sono bloccate, il resto continua, il banner rosso lo segnala. Per togliere lo stop serve un **secondo operatore**, e le decisioni bloccate non ripartono da sole.
 
-*Tier 2C (emergency stop) · test T3*
+_Tier 2C (emergency stop) · test T3_
 
 ---
 
@@ -90,7 +90,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > La matrice mostra dove decide l'AI e dove l'umano, con lo stesso codice della dichiarazione: il KPI A6 è al 100%.
 
-*Tier 1 (metriche disaggregate, due ipotesi) · Tier 3B (bias, drift, override, alert) · test T5*
+_Tier 1 (metriche disaggregate, due ipotesi) · Tier 3B (bias, drift, override, alert) · test T5_
 
 > Ora i limiti, perché un limite dichiarato vale più di uno scoperto:
 >
@@ -102,7 +102,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 >
 > Tutto è nella **model card**, nella **relazione d'impatto** e nella **dichiarazione di oversight**. Nel mondo reale il **provider** è chi sviluppa il sistema e risponde di dati, documentazione, logging e progettazione della supervisione; il **deployer** è l'operatore di rete, che deve affidarlo a persone formate, monitorarlo e conservare i log.
 
-*Tier 4 (documenti, limiti, provider e deployer)*
+_Tier 4 (documenti, limiti, provider e deployer)_
 
 ---
 
@@ -114,19 +114,19 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 ## Copertura delle richieste della giuria
 
-| Richiesta (slide)                                   | Dove nel discorso                    |
-| --------------------------------------------------- | ------------------------------------ |
-| Tier 1: baseline, soglia giustificata               | Scenario                             |
+| Richiesta (slide)                                    | Dove nel discorso                    |
+| ---------------------------------------------------- | ------------------------------------ |
+| Tier 1: baseline, soglia giustificata                | Scenario                             |
 | Tier 1: metriche disaggregate, ≥ 2 ipotesi Sud/Isole | Bias, limiti, trade-off              |
-| Tier 2A: matrice HIC/HITL/HOTL con soglie           | Predizione e routing                 |
-| Tier 2B: 4 azioni, motivazione, SLA, punto unico    | Giudizio umano                       |
-| Tier 2C: stop a tre granularità, coda, log          | Fermare il sistema                   |
-| Tier 3A: 3 fattori, linguaggio operativo, incertezza | Spiegazione e incertezza            |
-| Tier 3B: bias, calibrazione, drift, override        | Bias, limiti, trade-off              |
-| Tier 3C: alert che agiscono, audit con integrità    | Audit trail; allerta di calibrazione |
-| Tier 4: scaletta 1' + 3' + 2', documenti, limiti    | Struttura del discorso; limiti       |
-| Provider e deployer                                 | Limiti                               |
-| Sei test T1-T6                                      | Indicati a margine di ogni passo     |
+| Tier 2A: matrice HIC/HITL/HOTL con soglie            | Predizione e routing                 |
+| Tier 2B: 4 azioni, motivazione, SLA, punto unico     | Giudizio umano                       |
+| Tier 2C: stop a tre granularità, coda, log           | Fermare il sistema                   |
+| Tier 3A: 3 fattori, linguaggio operativo, incertezza | Spiegazione e incertezza             |
+| Tier 3B: bias, calibrazione, drift, override         | Bias, limiti, trade-off              |
+| Tier 3C: alert che agiscono, audit con integrità     | Audit trail; allerta di calibrazione |
+| Tier 4: scaletta 1' + 3' + 2', documenti, limiti     | Struttura del discorso; limiti       |
+| Provider e deployer                                  | Limiti                               |
+| Sei test T1-T6                                       | Indicati a margine di ogni passo     |
 
 ## Promemoria per le domande
 

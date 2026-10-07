@@ -77,16 +77,16 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 
 ### Rischi identificati e mitigazioni implementate
 
-| Rischio                                              | Chi lo subisce            | Mitigazione                                                                                                                                | Come si verifica                                                                    |
-| ---------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| Guasto non previsto su utenza critica (es. ospedale) | Utenze servite, cittadini | Soglia 0.20 per utenze alte/critiche; decisioni su utenze critiche sempre HIC (D-02, D-08)                                                 | Guasti mancati su critiche/alte da 3/6 a 1/1                                        |
-| Label bias: guasti del Sud sotto-registrati          | Territori del Sud         | Area fuori dal modello; nessun aumento di soglia al Sud; allerta di calibrazione che vieta l'auto-esecuzione nell'area (D-03, D-05, D-19)  | Gap di calibrazione Sud esposto in dashboard; decisioni HOTL del Sud diventano HITL |
-| Automation bias, approvazioni a occhi chiusi         | Utenze, squadre           | Motivazione obbligatoria, fotocopie bloccate, KPI A3/A4, incertezza sempre visibile (D-11, D-31)                                           | KPI A4 in dashboard; test T2                                                        |
-| Azione eseguita nonostante il rifiuto                | Utenze, squadre           | Un solo punto di esecuzione con controlli (D-10)                                                                                           | Test T1                                                                             |
-| Impossibilità di fermare una parte del sistema       | Tutti                     | Stop per area, tipo o combinazione, anche sulla coda esistente; sblocco a quattro occhi; decisioni bloccate da risottomettere (D-13..D-16) | Test T3                                                                             |
-| Coda umana che non regge il carico                   | Operatori                 | SLA 30 minuti con escalation; soglia 0.30 invece di 0.20 per non saturare la coda (D-01, D-12)                                             | KPI A5                                                                              |
-| Spiegazione incomprensibile o inventata              | Operatore, giuria         | Riquadro semplice a regole fisse; guardrail e fallback per l'LLM (D-20, D-31..D-34)                                                        | Test T4                                                                             |
-| Log manomesso                                        | Auditor                   | Catena di hash, integrità sempre visibile (D-29, D-30)                                                                                     | Test T6                                                                             |
+| Rischio                                              | Chi lo subisce            | Mitigazione                                                                                                                                           | Come si verifica                                                                    |
+| ---------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Guasto non previsto su utenza critica (es. ospedale) | Utenze servite, cittadini | Soglia 0.20 per utenze alte/critiche; decisioni su utenze critiche sempre HIC (D-02, D-08)                                                            | Guasti mancati su critiche/alte da 3/6 a 1/1                                        |
+| Label bias: guasti del Sud sotto-registrati          | Territori del Sud         | Area fuori dal modello; nessun aumento di soglia al Sud; allerta di calibrazione che vieta l'auto-esecuzione nell'area (D-03, D-05, D-19)             | Gap di calibrazione Sud esposto in dashboard; decisioni HOTL del Sud diventano HITL |
+| Automation bias, approvazioni a occhi chiusi         | Utenze, squadre           | Motivazione obbligatoria, fotocopie bloccate, KPI A3/A4, incertezza sempre visibile (D-11, D-31)                                                      | KPI A4 in dashboard; test T2                                                        |
+| Azione eseguita nonostante il rifiuto                | Utenze, squadre           | Un solo punto di esecuzione con controlli (D-10)                                                                                                      | Test T1                                                                             |
+| Impossibilità di fermare una parte del sistema       | Tutti                     | Stop per area, tipo o combinazione, anche sulla coda esistente; sblocco a quattro occhi; decisioni bloccate da risottomettere (D-13..D-16)            | Test T3                                                                             |
+| Coda umana che non regge il carico                   | Operatori                 | SLA 30 minuti con escalation; soglia 0.30 invece di 0.20 per non saturare la coda (D-01, D-12)                                                        | KPI A5                                                                              |
+| Spiegazione incomprensibile o inventata              | Operatore, giuria         | Riquadro semplice a regole fisse; guardrail e fallback per l'LLM (D-20, D-31..D-34)                                                                   | Test T4                                                                             |
+| Log manomesso                                        | Auditor                   | Catena di hash, integrità sempre visibile (D-29, D-30)                                                                                                | Test T6                                                                             |
 | Guasti mancati concentrati dove l'AI agisce da sola  | Utenze di Nord e Centro   | Nelle aree con allerta di recall l'ispezione di routine passa da un umano (D-43); recall con intervallo e gruppi incrociati in dashboard (D-44, D-45) | Guasti reali auto-eseguiti sul test set da 6 a 2; tabelle nella scheda Bias & drift |
 
 ### Cosa NON abbiamo risolto
@@ -121,7 +121,7 @@ Le regole si applicano nell'ordine: vale la prima che scatta.
 | 3   | Probabilità di guasto **≥ 0.60**                               | **HITL** | Rischio alto: serve un giudizio umano prima di mandare una squadra                                               |
 | 4   | Confidenza **< 0.80**                                          | **HITL** | Il modello è incerto: il caso è vicino al "testa o croce"                                                        |
 | 5   | Area con **allerta di calibrazione o di drift**                | **HITL** | I dati di quell'area sono sospetti: niente auto-esecuzione finché l'allerta resta attiva (D-19, D-27)            |
-| 6   | Area con **allerta di gap di recall** e probabilità **≥ 0.10** | **HITL** | Dove il modello manca più guasti (oggi Nord e Centro) anche l'ispezione di routine passa da un umano (D-43)     |
+| 6   | Area con **allerta di gap di recall** e probabilità **≥ 0.10** | **HITL** | Dove il modello manca più guasti (oggi Nord e Centro) anche l'ispezione di routine passa da un umano (D-43)      |
 | 7   | Azione leggera (**nessuna azione** o **ispezione di routine**) | **HOTL** | Errore a costo basso e pienamente reversibile: il sistema agisce, l'umano rivede dopo                            |
 | 8   | Tutto il resto                                                 | **HITL** | Default prudente                                                                                                 |
 
@@ -144,17 +144,16 @@ Le regole si applicano nell'ordine: vale la prima che scatta.
 
 ### Segnali di allarme monitorati
 
-| Segnale                        | Soglia                                   | Effetto                                    |
-| ------------------------------ | ---------------------------------------- | ------------------------------------------ |
+| Segnale                        | Soglia                                   | Effetto                                                                |
+| ------------------------------ | ---------------------------------------- | ---------------------------------------------------------------------- |
 | Gap di recall tra aree o tipi  | > 0.15                                   | Allerta in dashboard; nell'area HOTL solo sotto 0.10 di rischio (D-43) |
-| Gap di calibrazione di un'area | > 0.10                                   | Allerta e promozione HOTL → HITL nell'area |
-| Accuracy settimanale           | < riferimento − 0.10 per 2 settimane     | Allerta e nessuna auto-esecuzione ovunque  |
-| Override di un'area            | > doppio della media, almeno 3 revisioni | Allerta: verificare il modello nell'area   |
-| Rubber-stamping (A4)           | > 10%                                    | Motivazioni brevi o fotocopia              |
-| Integrità del log              | Catena interrotta                        | Allerta in ogni schermata                  |
+| Gap di calibrazione di un'area | > 0.10                                   | Allerta e promozione HOTL → HITL nell'area                             |
+| Accuracy settimanale           | < riferimento − 0.10 per 2 settimane     | Allerta e nessuna auto-esecuzione ovunque                              |
+| Override di un'area            | > doppio della media, almeno 3 revisioni | Allerta: verificare il modello nell'area                               |
+| Rubber-stamping (A4)           | > 10%                                    | Motivazioni brevi o fotocopia                                          |
+| Integrità del log              | Catena interrotta                        | Allerta in ogni schermata                                              |
 
 ### Ruoli (domanda finale della guida)
 
 - **Provider**: chi sviluppa il sistema (nel nostro caso il team; nel reale l'unità IT/data o un fornitore). Obblighi: governance e qualità dei dati (Art. 10), documentazione tecnica, accuratezza e robustezza, logging by design (Art. 12), trasparenza verso il deployer (Art. 13, model card), progettazione per la supervisione umana (Art. 14).
 - **Deployer**: l'operatore di rete che usa il sistema in control room. Obblighi: assegnare la supervisione a persone competenti e formate (Art. 14, Art. 26), usarlo secondo le istruzioni, monitorarlo, conservare i log, segnalare incidenti e rischi.
-
