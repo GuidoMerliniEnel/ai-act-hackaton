@@ -1,5 +1,7 @@
 # About
 
+[View the EnerGuard documentation website](https://guidomerlinienel.github.io/ai-act-hackaton/).
+
 ## Scenario
 
 An energy distribution company uses machine learning to decide which grid
@@ -18,12 +20,12 @@ obligations from 2 August 2026.
 EnerGuard was built during the **AI Human Oversight Hackathon**
 (Deloitte × Enel FNC, 7 October 2026), in four tiers:
 
-| Tier | Goal                                          | Deliverable                                                  |
-| ---- | --------------------------------------------- | ------------------------------------------------------------ |
-| 1    | Model and data: find the hidden bias          | `predizioni.csv`, disaggregated metrics, anomalies observed  |
-| 2    | Human oversight: routing, queue, stop         | Working approve/modify/reject flow and emergency stop        |
-| 3    | Explainability, bias and drift monitoring     | Complete dashboard and at least one automatic alert          |
-| 4    | Presentation                                  | Model card, impact assessment, oversight declaration, demo   |
+| Tier | Goal                                      | Deliverable                                                 |
+| ---- | ----------------------------------------- | ----------------------------------------------------------- |
+| 1    | Model and data: find the hidden bias      | `predizioni.csv`, disaggregated metrics, anomalies observed |
+| 2    | Human oversight: routing, queue, stop     | Working approve/modify/reject flow and emergency stop       |
+| 3    | Explainability, bias and drift monitoring | Complete dashboard and at least one automatic alert         |
+| 4    | Presentation                              | Model card, impact assessment, oversight declaration, demo  |
 
 The jury does not reward AUC. It rewards an oversight layer that really
 blocks, really requires a justification, and really stops. This is checked
@@ -41,15 +43,15 @@ The repository follows:
   cyber security, accessibility, privacy, adoption, quality and
   intellectual property.
 
-| OP36 requirement                       | How EnerGuard addresses it                                                    |
-| -------------------------------------- | ----------------------------------------------------------------------------- |
-| 4.6 Cyber Security by Design           | Secrets only in `.env`; pinned Actions; `pip-audit`; LLM output guardrails   |
+| OP36 requirement                        | How EnerGuard addresses it                                                      |
+| --------------------------------------- | ------------------------------------------------------------------------------- |
+| 4.6 Cyber Security by Design            | Secrets only in `.env`; pinned Actions; `pip-audit`; LLM output guardrails      |
 | 4.7 Digital Accessibility (WCAG 2.1 AA) | Docs theme with AA contrast; text-based status in the dashboard, not color only |
-| 4.8 Personal Data Protection           | Synthetic dataset; operator IDs are pseudonymous                               |
-| 4.9 Adoption by Design                 | KPIs A1–A6 measure real use of the supervision layer                           |
-| 4.11 Quality Management                | CI: build, smoke tests, docs build, security and license gates               |
-| 4.12 Data Security in Non-Production   | No production data is used                                                     |
-| 4.15 Intellectual Property by Design   | Apache-2.0, `NOTICE`, license gate blocking AGPL/SSPL/GPL-3.0                  |
+| 4.8 Personal Data Protection            | Synthetic dataset; operator IDs are pseudonymous                                |
+| 4.9 Adoption by Design                  | KPIs A1–A6 measure real use of the supervision layer                            |
+| 4.11 Quality Management                 | CI: build, smoke tests, docs build, security and license gates                  |
+| 4.12 Data Security in Non-Production    | No production data is used                                                      |
+| 4.15 Intellectual Property by Design    | Apache-2.0, `NOTICE`, license gate blocking AGPL/SSPL/GPL-3.0                   |
 
 ## Language
 
