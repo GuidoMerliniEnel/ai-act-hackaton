@@ -8,55 +8,55 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 
 ### Modello e dati (Tier 1)
 
-| ID | Decisione | Razionale | Origine | Dove |
-| --- | --- | --- | --- | --- |
-| D-01 | Soglia 0.30 per utenze standard (prima 0.35) | Un guasto non previsto costa circa 10 volte un'ispezione inutile (ipotesi dichiarata). 0.20 darebbe 230 ispezioni inutili su 720 e saturerebbe la coda umana | Gruppo | `train_baseline.py` `SOGLIE` |
-| D-02 | Soglia 0.20 per utenze alte e critiche | L'HIC protegge solo ciò che supera la soglia: un guasto mancato su un ospedale non entra mai in coda. FN su critiche/alte da 3/6 a 1/1 | Gruppo | `train_baseline.py` `SOGLIE` |
-| D-03 | `area_geografica` fuori dal modello, tenuta per monitoraggio e stop | Fa da proxy del label bias. Senza area AUC 0.868 (da 0.862), gap di recall 0.41 → 0.22 | Gruppo | `utils_io.prepara_feature` |
-| D-04 | Ipotesi: sotto-segnalazione dei guasti al Sud | Sud e Isole hanno profili quasi identici ma guasti registrati 0.24 contro 0.45; solo il Sud è mal calibrato | Gruppo | `TRACCIAMENTO` § Anomalia |
-| D-05 | Nessun aumento di soglia al Sud | I "falsi positivi" del Sud possono essere guasti veri non registrati: alzare la soglia amplificherebbe il bias (recall Sud 0.88 → 0.65) | Gruppo | — |
-| D-06 | Recall basso di Nord/Centro dichiarato come limite | I guasti mancati non hanno segnali dai sensori (vibrazione 2.8 contro 4.6); calibrazione corretta, quindi non è label bias | Gruppo | Relazione d'impatto |
-| D-07 | Confidenza = $\max(p, 1-p)$ | Default del kit, semplice e spiegabile. Limite: con soglia 0.80 il caso HOTL richiede $p \leq 0.20$ | Kit | `train_baseline.py` |
+| ID   | Decisione                                                           | Razionale                                                                                                                                                    | Origine | Dove                         |
+| ---- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ---------------------------- |
+| D-01 | Soglia 0.30 per utenze standard (prima 0.35)                        | Un guasto non previsto costa circa 10 volte un'ispezione inutile (ipotesi dichiarata). 0.20 darebbe 230 ispezioni inutili su 720 e saturerebbe la coda umana | Gruppo  | `train_baseline.py` `SOGLIE` |
+| D-02 | Soglia 0.20 per utenze alte e critiche                              | L'HIC protegge solo ciò che supera la soglia: un guasto mancato su un ospedale non entra mai in coda. FN su critiche/alte da 3/6 a 1/1                       | Gruppo  | `train_baseline.py` `SOGLIE` |
+| D-03 | `area_geografica` fuori dal modello, tenuta per monitoraggio e stop | Fa da proxy del label bias. Senza area AUC 0.868 (da 0.862), gap di recall 0.41 → 0.22                                                                       | Gruppo  | `utils_io.prepara_feature`   |
+| D-04 | Ipotesi: sotto-segnalazione dei guasti al Sud                       | Sud e Isole hanno profili quasi identici ma guasti registrati 0.24 contro 0.45; solo il Sud è mal calibrato                                                  | Gruppo  | `TRACCIAMENTO` § Anomalia    |
+| D-05 | Nessun aumento di soglia al Sud                                     | I "falsi positivi" del Sud possono essere guasti veri non registrati: alzare la soglia amplificherebbe il bias (recall Sud 0.88 → 0.65)                      | Gruppo  | —                            |
+| D-06 | Recall basso di Nord/Centro dichiarato come limite                  | I guasti mancati non hanno segnali dai sensori (vibrazione 2.8 contro 4.6); calibrazione corretta, quindi non è label bias                                   | Gruppo  | Relazione d'impatto          |
+| D-07 | Confidenza = $\max(p, 1-p)$                                         | Default del kit, semplice e spiegabile. Limite: con soglia 0.80 il caso HOTL richiede $p \leq 0.20$                                                          | Kit     | `train_baseline.py`          |
 
 ### Supervisione umana (Tier 2)
 
-| ID | Decisione | Razionale | Origine | Dove |
-| --- | --- | --- | --- | --- |
-| D-08 | Routing: HIC se utenza critica o riduzione carico su utenza alta; HITL se $P \geq 0.60$, confidenza < 0.80, area con allerta o azione non leggera; HOTL solo per routine a basso rischio | Il veto umano assoluto dove l'errore è irreversibile (ospedali); l'AI agisce da sola solo dove l'errore costa poco ed è reversibile (canvas) | Kit + gruppo | `oversight_manager.route` |
-| D-09 | Azione proposta da regole: ≥ 0.85 riduci carico (solo utenze non standard) o ispezione urgente; ≥ 0.60 manutenzione; ≥ 0.10 routine | Il kit proponeva sempre "manutenzione": l'azione deve crescere con il rischio | Tecnica | `proponi_azione` |
-| D-10 | Un solo punto di esecuzione con controlli | Una decisione rifiutata, in attesa, HIC auto-eseguita o sotto stop non può raggiungere `_esegui` (test T1) | Kit + tecnica | `_esegui` |
-| D-11 | Motivazione obbligatoria ≥ 15 caratteri; motivazioni fotocopia bloccate; < 30 caratteri misurate | Una motivazione vuota, "ok" o copiata non è un giudizio (test T2, KPI A4) | Kit + tecnica | `revisiona` |
-| D-12 | SLA 30 minuti: oltre, ESCALATION; escalation anche manuale | Una decisione non revisionata non viene mai eseguita in silenzio | Kit + tecnica | `controlla_sla` |
-| D-13 | Stop a tre granularità più combinazioni (es. linee AT del Sud), anche sulla coda esistente | "Fermare" vale anche per ciò che è già in coda; sotto stop nessuna revisione (test T3) | Tecnica | `attiva_stop`, `_match_ambito` |
-| D-14 | Attivazione stop: un click più conferma, motivazione obbligatoria | Rapido ma non accidentale (test T3) | Tecnica | `app.py` sidebar |
-| D-15 | Riattivazione: motivazione, presa visione e secondo operatore diverso | Togliere uno stop è più rischioso che metterlo: principio dei quattro occhi (Art. 14(5)) | Tecnica | `disattiva_stop` |
-| D-16 | Decisioni bloccate restano bloccate dopo lo sblocco; rientrano solo se risottomesse, una volta, rivalutate da zero | Evita rumore e derive: nessuna decisione presa prima dell'incidente riparte in automatico | Gruppo | `risottometti` |
-| D-17 | KPI A1–A6 in dashboard; A6 confronta il routing con una copia separata della matrice dichiarata | Un sistema che non misura la propria supervisione non è supervisionabile | Tecnica | `kpi`, `livello_dichiarato` |
-| D-18 | Campione demo: 40 positive più 8 a basso rischio | Senza casi a basso rischio il ramo HOTL non si vedrebbe mai | Tecnica | `app.py` bootstrap |
+| ID   | Decisione                                                                                                                                                                                | Razionale                                                                                                                                    | Origine       | Dove                           |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------ |
+| D-08 | Routing: HIC se utenza critica o riduzione carico su utenza alta; HITL se $P \geq 0.60$, confidenza < 0.80, area con allerta o azione non leggera; HOTL solo per routine a basso rischio | Il veto umano assoluto dove l'errore è irreversibile (ospedali); l'AI agisce da sola solo dove l'errore costa poco ed è reversibile (canvas) | Kit + gruppo  | `oversight_manager.route`      |
+| D-09 | Azione proposta da regole: ≥ 0.85 riduci carico (solo utenze non standard) o ispezione urgente; ≥ 0.60 manutenzione; ≥ 0.10 routine                                                      | Il kit proponeva sempre "manutenzione": l'azione deve crescere con il rischio                                                                | Tecnica       | `proponi_azione`               |
+| D-10 | Un solo punto di esecuzione con controlli                                                                                                                                                | Una decisione rifiutata, in attesa, HIC auto-eseguita o sotto stop non può raggiungere `_esegui` (test T1)                                   | Kit + tecnica | `_esegui`                      |
+| D-11 | Motivazione obbligatoria ≥ 15 caratteri; motivazioni fotocopia bloccate; < 30 caratteri misurate                                                                                         | Una motivazione vuota, "ok" o copiata non è un giudizio (test T2, KPI A4)                                                                    | Kit + tecnica | `revisiona`                    |
+| D-12 | SLA 30 minuti: oltre, ESCALATION; escalation anche manuale                                                                                                                               | Una decisione non revisionata non viene mai eseguita in silenzio                                                                             | Kit + tecnica | `controlla_sla`                |
+| D-13 | Stop a tre granularità più combinazioni (es. linee AT del Sud), anche sulla coda esistente                                                                                               | "Fermare" vale anche per ciò che è già in coda; sotto stop nessuna revisione (test T3)                                                       | Tecnica       | `attiva_stop`, `_match_ambito` |
+| D-14 | Attivazione stop: un click più conferma, motivazione obbligatoria                                                                                                                        | Rapido ma non accidentale (test T3)                                                                                                          | Tecnica       | `app.py` sidebar               |
+| D-15 | Riattivazione: motivazione, presa visione e secondo operatore diverso                                                                                                                    | Togliere uno stop è più rischioso che metterlo: principio dei quattro occhi (Art. 14(5))                                                     | Tecnica       | `disattiva_stop`               |
+| D-16 | Decisioni bloccate restano bloccate dopo lo sblocco; rientrano solo se risottomesse, una volta, rivalutate da zero                                                                       | Evita rumore e derive: nessuna decisione presa prima dell'incidente riparte in automatico                                                    | Gruppo        | `risottometti`                 |
+| D-17 | KPI A1–A6 in dashboard; A6 confronta il routing con una copia separata della matrice dichiarata                                                                                          | Un sistema che non misura la propria supervisione non è supervisionabile                                                                     | Tecnica       | `kpi`, `livello_dichiarato`    |
+| D-18 | Campione demo: 40 positive più 8 a basso rischio                                                                                                                                         | Senza casi a basso rischio il ramo HOTL non si vedrebbe mai                                                                                  | Tecnica       | `app.py` bootstrap             |
 
 ### Monitoraggio e spiegabilità (Tier 3)
 
-| ID | Decisione | Razionale | Origine | Dove |
-| --- | --- | --- | --- | --- |
-| D-19 | Allerta di calibrazione > 0.10 che promuove a HITL le decisioni HOTL dell'area | Il bias nelle etichette non si corregge nel modello: lo gestisce la supervisione umana. Oggi scatta solo per il Sud (gap 0.177) | Gruppo | `bias_detector`, `imposta_promozioni` |
-| D-20 | Spiegazioni con LLM Azure, guardrail e fallback al template; limite risposta 2000 token | Più leggibili per l'operatore; con 400 token la risposta era vuota. Da confermare nel gruppo e motivare nella model card | Tecnica (da confermare) | `explainer.py` |
+| ID   | Decisione                                                                               | Razionale                                                                                                                       | Origine                 | Dove                                  |
+| ---- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------- |
+| D-19 | Allerta di calibrazione > 0.10 che promuove a HITL le decisioni HOTL dell'area          | Il bias nelle etichette non si corregge nel modello: lo gestisce la supervisione umana. Oggi scatta solo per il Sud (gap 0.177) | Gruppo                  | `bias_detector`, `imposta_promozioni` |
+| D-20 | Spiegazioni con LLM Azure, guardrail e fallback al template; limite risposta 2000 token | Più leggibili per l'operatore; con 400 token la risposta era vuota. Da confermare nel gruppo e motivare nella model card        | Tecnica (da confermare) | `explainer.py`                        |
 
 ## Cronologia git
 
 Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato originale e reintrodotte come commit separati; nel codice i TODO risolti sono sostituiti da commenti `DECISIONE:` con il razionale. `.env`, `modello.joblib`, `predizioni.csv` e `audit_trail.jsonl` sono ignorati.
 
-| Commit    | Contenuto                                                           |
-| --------- | ------------------------------------------------------------------- |
-| `2b69a86` | Baseline: starter kit originale                                     |
-| `9315609` | LLM: `max_completion_tokens` 400 → 2000                             |
-| `2f0556a` | Tier 2: stop sulla coda esistente, ambiti combinati, escalation SLA |
-| `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL      |
-| `4687e92` | Tracciamento: cronologia git                                        |
-| `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole                            |
-| `79baf23` | Tier 1: metriche disaggregate e punti di discussione                 |
-| `7effb0a` | Tier 1: correzione ipotesi e decisioni del gruppo                    |
-| `ad8cfd0` | Mitigazione: area fuori dal modello, soglie per criticità            |
-| `f580a5e` | Mitigazione: allerta di calibrazione con promozione a HITL           |
+| Commit    | Contenuto                                                                  |
+| --------- | -------------------------------------------------------------------------- |
+| `2b69a86` | Baseline: starter kit originale                                            |
+| `9315609` | LLM: `max_completion_tokens` 400 → 2000                                    |
+| `2f0556a` | Tier 2: stop sulla coda esistente, ambiti combinati, escalation SLA        |
+| `8672ebf` | Tier 2: azione da regole, KPI A1–A6, scheda KPI, campione HOTL             |
+| `4687e92` | Tracciamento: cronologia git                                               |
+| `5e10d1d` | Tier 1: soglia 0.30 e indagine Sud/Isole                                   |
+| `79baf23` | Tier 1: metriche disaggregate e punti di discussione                       |
+| `7effb0a` | Tier 1: correzione ipotesi e decisioni del gruppo                          |
+| `ad8cfd0` | Mitigazione: area fuori dal modello, soglie per criticità                  |
+| `f580a5e` | Mitigazione: allerta di calibrazione con promozione a HITL                 |
 | (questo)  | Tier 2: conferma stop, sblocco a quattro occhi, risottomissione, fotocopie |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
