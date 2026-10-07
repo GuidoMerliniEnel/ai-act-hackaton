@@ -55,6 +55,7 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 | D-33 | Riquadro generato da regole fisse, non dall'LLM                                                                                                                      | Istantaneo, ripetibile, nessun numero inventato e nessuna dipendenza dalla rete: la parte che deve capire chiunque non può dipendere da un servizio esterno                                                              | Tecnica             | `guida_semplice`                          |
 | D-34 | Scenario "e se...": il modello rifà la previsione con il fattore principale riportato alla mediana della flotta, e dice se l'intervento sarebbe ancora richiesto     | Spiegazione contrastiva, livello 4 della rubrica: mostra che cosa dovrebbe cambiare perché cambi la raccomandazione. È calcolata, non scritta a mano                                                                     | Tecnica             | `explainer.scenario_media`                |
 | D-35 | Script `prova_test_giuria.py` che esegue i 6 test della giuria su log temporanei                                                                                     | Prova generale ripetibile prima della demo; non tocca il log reale né `.env`. Oggi 8/8 verifiche superate                                                                                                                | Tecnica             | `prova_test_giuria.py`                    |
+| D-36 | Riquadri `!!!` del sito protetti con `<!-- prettier-ignore-start/end -->` | Il formatter al salvataggio toglieva il rientro: i 9 limiti dichiarati della model card inglese sarebbero finiti attaccati al titolo. Corretti anche 3 riquadri già rotti | Tecnica | `docs/` |
 
 ## Cronologia git
 
@@ -77,9 +78,10 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `772495f` | Tier 3: matrice, drift, override per area, audit (D-25..D-30)       |
 | `abec779` | Card "In parole semplici" con scenario "e se..." (D-31..D-34)       |
 | `a110082` | Tier 4: documenti di consegna e prova dei 6 test (D-35)             |
-| `afa66dd` | Formattazione tabelle in `consegna/` e tracciamento                  |
-| `1ceea5a` | Merge di `tier4` (Marco Gazzuolo): OSPO, sito `docs/`, test_llm      |
-| (questo)  | Allineamento di `docs/` alla consegna ufficiale                      |
+| `afa66dd` | Formattazione tabelle in `consegna/` e tracciamento                 |
+| `1ceea5a` | Merge di `tier4` (Marco Gazzuolo): OSPO, sito `docs/`, test_llm     |
+| `66274e5` | Allineamento di `docs/` alla consegna ufficiale                     |
+| (questo)  | Formattazione automatica e riquadri del sito protetti (D-36)        |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 

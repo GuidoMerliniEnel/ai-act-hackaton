@@ -1,9 +1,12 @@
 # Model Card
 
+<!-- prettier-ignore-start -->
 !!! note "Official deliverable"
+
     The official, Italian model card handed in for the hackathon is
     `consegna/1_Model_Card.md`. This page is the English summary; numbers
     come from the same `predizioni.csv`.
+<!-- prettier-ignore-end -->
 
 ## Purpose
 
@@ -28,25 +31,25 @@ data without re-validation.
 
 ## Model
 
-| Item                | Value                                                       |
-| ------------------- | ----------------------------------------------------------- |
-| Algorithm           | Random forest, 300 trees, balanced class weights            |
-| Features            | Asset type, age, temperature, vibration, load, humidity, maintenance count, days since last maintenance, user criticality |
-| Decision threshold  | 0.30 for standard users; 0.20 for high and critical users ([D-01](../decisions/index.md#d-01), [D-02](../decisions/index.md#d-02)) |
-| Cost assumption     | A missed failure costs about 10 times an unnecessary inspection (declared hypothesis) |
-| Confidence          | `max(p, 1-p)` ([D-07](../decisions/index.md#d-07))        |
-| Explanations        | Plain-language box by fixed rules with a computed "what if" scenario ([D-31](../decisions/index.md#d-31)..[D-34](../decisions/index.md#d-34)); expert details: top three SHAP factors rendered by LLM with guardrails and template fallback ([D-20](../decisions/index.md#d-20)) |
+| Item               | Value                                                                                                                                                                                                                                                                            |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Algorithm          | Random forest, 300 trees, balanced class weights                                                                                                                                                                                                                                 |
+| Features           | Asset type, age, temperature, vibration, load, humidity, maintenance count, days since last maintenance, user criticality                                                                                                                                                        |
+| Decision threshold | 0.30 for standard users; 0.20 for high and critical users ([D-01](../decisions/index.md#d-01), [D-02](../decisions/index.md#d-02))                                                                                                                                               |
+| Cost assumption    | A missed failure costs about 10 times an unnecessary inspection (declared hypothesis)                                                                                                                                                                                            |
+| Confidence         | `max(p, 1-p)` ([D-07](../decisions/index.md#d-07))                                                                                                                                                                                                                               |
+| Explanations       | Plain-language box by fixed rules with a computed "what if" scenario ([D-31](../decisions/index.md#d-31)..[D-34](../decisions/index.md#d-34)); expert details: top three SHAP factors rendered by LLM with guardrails and template fallback ([D-20](../decisions/index.md#d-20)) |
 
 ## Global metrics (test set, 720 assets)
 
-| Metric      | Value |
-| ----------- | ----- |
-| AUC         | 0.868 |
-| Recall      | 0.837 |
-| Precision   | 0.371 |
-| Accuracy    | 0.717 |
-| Missed failures (FN) | 21 (1 critical, 1 high) |
-| Unnecessary inspections (FP) | 183 |
+| Metric                       | Value                   |
+| ---------------------------- | ----------------------- |
+| AUC                          | 0.868                   |
+| Recall                       | 0.837                   |
+| Precision                    | 0.371                   |
+| Accuracy                     | 0.717                   |
+| Missed failures (FN)         | 21 (1 critical, 1 high) |
+| Unnecessary inspections (FP) | 183                     |
 
 ## Metrics by subgroup
 
@@ -81,7 +84,9 @@ Alert threshold: 0.10.
 
 ## Known limitations
 
+<!-- prettier-ignore-start -->
 !!! warning "Declared limits"
+
     - **Recall gap North (0.216 > 0.15).** Missed failures in the North and
       Centre show no sensor signal (mean vibration 2.8 vs 4.6). The model is
       well calibrated there, so this is a model limit, not label bias
@@ -107,6 +112,7 @@ Alert threshold: 0.10.
       provider. Guardrails and template fallback mitigate this, but wording
       can vary between runs.
     - **Synthetic data.** Metrics are not representative of a real grid.
+<!-- prettier-ignore-end -->
 
 ## AI Act risk classification
 

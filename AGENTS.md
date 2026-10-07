@@ -52,9 +52,9 @@ All work complies with **OP35** and **OP36** (see
 
 ## Copilot Customizations
 
-| Type         | Location                                       | Purpose                                 |
-| ------------ | ---------------------------------------------- | --------------------------------------- |
-| Instructions | `.github/copilot-instructions.md`              | OP35/OP36 rules, coding standards       |
-| Instructions | `.github/instructions/*.instructions.md`       | Path-scoped rules (docs, oversight)     |
-| Agents       | `.github/agents/*.agent.md`                    | Technical writer persona                |
-| Skills       | `.github/skills/enel-design-system/SKILL.md`   | Enel Design System for the docs theme   |
+| Type         | Location                                     | Purpose                               |
+| ------------ | -------------------------------------------- | ------------------------------------- |
+| Instructions | `.github/copilot-instructions.md`            | OP35/OP36 rules, coding standards     |
+| Instructions | `.github/instructions/*.instructions.md`     | Path-scoped rules (docs, oversight)   |
+| Agents       | `.github/agents/*.agent.md`                  | Technical writer persona              |
+| Skills       | `.github/skills/enel-design-system/SKILL.md` | Enel Design System for the docs theme |

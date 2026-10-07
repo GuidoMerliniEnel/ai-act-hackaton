@@ -10,7 +10,7 @@ an approval queue with mandatory justifications, emergency stop, bias and
 drift monitoring, natural-language explanations, and a tamper-evident audit
 trail.
 
-Built during the *AI Human Oversight Hackathon* (Deloitte × Enel FNC, 2026)
+Built during the _AI Human Oversight Hackathon_ (Deloitte × Enel FNC, 2026)
 on top of the EnerGuard starter kit.
 
 ## Overview
@@ -120,14 +120,15 @@ the folder with any static web server.
    `docs/compliance/new-page.md`.
 2. Register it in the `nav` list at the top of `zensical.toml`:
 
-    ```toml
-    { Compliance = [
-      "compliance/index.md",
-      { "New Page" = "compliance/new-page.md" },
-    ] },
-    ```
+   ```toml
+   { Compliance = [
+     "compliance/index.md",
+     { "New Page" = "compliance/new-page.md" },
+   ] },
+   ```
 
-    Pages missing from `nav` are **silently dropped** from the build.
+   Pages missing from `nav` are **silently dropped** from the build.
+
 3. Run `zensical serve` and check the page, then `zensical build --clean`
    before opening a pull request.
 
@@ -138,7 +139,7 @@ emoji, code highlighting with copy button, and Mermaid diagrams.
 
 ````markdown
 !!! warning "Declared limit"
-    Text of the note.
+Text of the note.
 
 ```mermaid
 flowchart LR
