@@ -483,6 +483,18 @@ def guida_semplice(rec: dict, fattori: list[Fattore], scenario: Optional[dict] =
             "attenzione": attenzione, "se_cambiasse": se_cambiasse}
 
 
+def casi_simili(df, asset_id: str, k: int = 3):
+    """DECISIONE: i k asset dello stesso tipo piu' vicini sui sensori (scala standardizzata), con l'esito registrato."""
+    import numpy as np
+    col = list(ETICHETTE)
+    riga = df.loc[df["asset_id"] == asset_id].iloc[0]
+    stessi = df[(df["tipo_asset"] == riga["tipo_asset"]) & (df["asset_id"] != asset_id)]
+    scala = df[col].std().replace(0, 1)
+    diff = (stessi[col].astype(float) - riga[col].astype(float)) / scala
+    dist = np.sqrt((diff ** 2).sum(axis=1))
+    return stessi.loc[dist.nsmallest(k).index]
+
+
 # ---------------------------------------------------------------------------
 # Factory: la dashboard chiama questa e non deve sapere quale provider c'è dietro
 # ---------------------------------------------------------------------------

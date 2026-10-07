@@ -22,3 +22,5 @@
 5. **Drift solo simulato** e **SLA non provato sotto carico reale**.
 6. **La confidenza scelta è povera**: replica la probabilità. Una misura di accordo tra gli alberi sarebbe più informativa.
 7. **Dipendenza da un fornitore LLM esterno** per i dettagli: mitigata dal fallback, ma il testo può variare tra due chiamate.
+8. **Revisori non differenziati per competenza** (D-40): chiunque abbia accesso può decidere anche sulle utenze critiche. Serve definire ruoli e autorizzazioni con l'organizzazione.
+9. **Il tempo di lettura per revisore è approssimato** (D-38): misuriamo l'intervallo tra due decisioni, non il tempo effettivo passato sulla card.

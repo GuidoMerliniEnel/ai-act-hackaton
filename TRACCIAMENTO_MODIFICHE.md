@@ -55,7 +55,11 @@ Ogni decisione ha un ID citato nel codice come commento `DECISIONE:`. "Origine" 
 | D-33 | Riquadro generato da regole fisse, non dall'LLM                                                                                                                      | Istantaneo, ripetibile, nessun numero inventato e nessuna dipendenza dalla rete: la parte che deve capire chiunque non può dipendere da un servizio esterno                                                              | Tecnica             | `guida_semplice`                          |
 | D-34 | Scenario "e se...": il modello rifà la previsione con il fattore principale riportato alla mediana della flotta, e dice se l'intervento sarebbe ancora richiesto     | Spiegazione contrastiva, livello 4 della rubrica: mostra che cosa dovrebbe cambiare perché cambi la raccomandazione. È calcolata, non scritta a mano                                                                     | Tecnica             | `explainer.scenario_media`                |
 | D-35 | Script `prova_test_giuria.py` che esegue i 6 test della giuria su log temporanei                                                                                     | Prova generale ripetibile prima della demo; non tocca il log reale né `.env`. Oggi 8/8 verifiche superate                                                                                                                | Tecnica             | `prova_test_giuria.py`                    |
-| D-36 | Riquadri `!!!` del sito protetti con `<!-- prettier-ignore-start/end -->` | Il formatter al salvataggio toglieva il rientro: i 9 limiti dichiarati della model card inglese sarebbero finiti attaccati al titolo. Corretti anche 3 riquadri già rotti | Tecnica | `docs/` |
+| D-36 | Riquadri `!!!` del sito protetti con `<!-- prettier-ignore-start/end -->`                                                                                            | Il formatter al salvataggio toglieva il rientro: i 9 limiti dichiarati della model card inglese sarebbero finiti attaccati al titolo. Corretti anche 3 riquadri già rotti                                                | Tecnica             | `docs/`                                   |
+| D-37 | Banner rosso in cima alla schermata quando uno stop è attivo, con ambito e numero di decisioni bloccate | Rubrica "Interruzione", livello 4: lo stato di stop deve essere impossibile da ignorare, non solo una voce in sidebar | Tecnica | `app.py` |
+| D-38 | Statistiche per revisore: decisioni, tasso di approvazione, secondi tra due revisioni consecutive, motivazioni brevi; allerta se < 10 s, se approva tutto (≥ 5 decisioni) o se > 30% motivazioni brevi | Rubrica "Intervento umano", livello 4, e KPI A3 "monitorare per revisore". La dashboard non sa quando si apre una card: l'intervallo tra due revisioni è un'approssimazione dichiarata | Tecnica | `per_revisore`, scheda KPI |
+| D-39 | Nella card, 3 asset storici dello stesso tipo con sensori simili e se si sono guastati | Rubrica "Comprensibilità", livello 4 ("riferimento a casi simili"). Distanza sui sensori standardizzati; avviso che lo storico del Sud può sottostimare i guasti | Tecnica | `explainer.casi_simili` |
+| D-40 | Revisori differenziati per competenza **non** implementati | Richiede ruoli e autorizzazioni degli operatori: è una scelta di processo, non tecnica. Dichiarato come limite | Gruppo | Relazione d'impatto |
 
 ## Cronologia git
 
@@ -81,7 +85,8 @@ Il kit è sotto git (`main`). Le modifiche sono state ripristinate allo stato or
 | `afa66dd` | Formattazione tabelle in `consegna/` e tracciamento                 |
 | `1ceea5a` | Merge di `tier4` (Marco Gazzuolo): OSPO, sito `docs/`, test_llm     |
 | `66274e5` | Allineamento di `docs/` alla consegna ufficiale                     |
-| (questo)  | Formattazione automatica e riquadri del sito protetti (D-36)        |
+| `bab5b46` | Formattazione automatica e riquadri del sito protetti (D-36)        |
+| (questo)  | Livello 4 rubrica: banner stop, per revisore, casi simili (D-37..D-40) |
 
 Backup dello stato precedente al rollback: `%TEMP%\energuard_stato_finale`.
 

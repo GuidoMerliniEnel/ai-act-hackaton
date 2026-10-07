@@ -332,6 +332,29 @@ class OversightManager:
                         "allerta": len(xs) >= min_revisioni and media > 0 and tasso > 2 * media})
         return out
 
+    def per_revisore(self, min_revisioni: int = 3) -> list[dict]:
+        """DECISIONE: tempo tra due revisioni consecutive dello stesso operatore come proxy del tempo di lettura."""
+        rev = sorted([r for r in self.coda if r.revisore and r.chiusa_il], key=lambda r: r.chiusa_il)
+        out = []
+        for chi in sorted({r.revisore for r in rev}):
+            xs = [r for r in rev if r.revisore == chi]
+            ist = [datetime.fromisoformat(r.chiusa_il) for r in xs]
+            pause = [(b - a).total_seconds() for a, b in zip(ist, ist[1:])]
+            tempo = round(median(pause), 1) if pause else None
+            approvate = sum(r.stato == StatoDecisione.APPROVATA for r in xs) / len(xs)
+            brevi = sum(len((r.motivazione or "").strip()) < 30 for r in xs) / len(xs)
+            motivi = []
+            if tempo is not None and len(xs) >= min_revisioni and tempo < 10:
+                motivi.append("meno di 10 s tra una decisione e l'altra")
+            if len(xs) >= 5 and approvate == 1:
+                motivi.append("approva tutto")
+            if len(xs) >= min_revisioni and brevi > 0.30:
+                motivi.append("motivazioni troppo brevi")
+            out.append({"revisore": chi, "decisioni": len(xs), "tasso_approvazione": round(approvate, 3),
+                        "secondi_tra_decisioni": tempo, "motivazioni_brevi": round(brevi, 3),
+                        "allerta": ", ".join(motivi)})
+        return out
+
     def livello_dichiarato(self, r: Raccomandazione) -> LivelloSupervisione:
         """Matrice D3 in forma tabellare, indipendente da route(): serve a misurare A6."""
         if r.criticita_utenza == "critica":

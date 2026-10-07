@@ -17,7 +17,7 @@ import streamlit as st
 from concurrent.futures import ThreadPoolExecutor
 
 from audit_logger import AuditLogger
-from explainer import (ETICHETTE, ConfigLLM, crea_spiegatore, estrai_fattori,
+from explainer import (ETICHETTE, ConfigLLM, casi_simili, crea_spiegatore, estrai_fattori,
                        guida_semplice, scenario_media)
 from bias_detector import BiasDetector
 from utils_io import SOGLIE_PER_CRITICITA, carica_csv, prepara_feature
@@ -63,6 +63,12 @@ def bootstrap():
 om, audit, pred, spiegatore = bootstrap()
 
 st.title("EnerGuard · Dashboard di Supervisione Umana")
+# DECISIONE: lo stop attivo deve essere impossibile da ignorare, non solo una voce in sidebar
+if om.stop_attivi:
+    n_ferme = sum(r.stato == StatoDecisione.BLOCCATA_STOP for r in om.coda)
+    st.error(f"⛔ **EMERGENCY STOP ATTIVO** su {', '.join(sorted(om.stop_attivi))} · "
+             f"{n_ferme} decisioni bloccate. Nessuna azione nell'ambito verrà eseguita finché "
+             "lo stop non viene tolto con doppia conferma.")
 operatore = st.sidebar.text_input("ID operatore", value="OP-001")
 
 # --- EMERGENCY STOP: sempre visibile, mai a piu' di un click ---
@@ -137,6 +143,11 @@ def _rec(r):
             "livello": getattr(r.livello, "value", None), "soglia_confidenza": om.soglia_conf}
 
 
+@st.cache_data(show_spinner=False)
+def _simili(asset_id: str):
+    return casi_simili(carica_csv("energuard_dataset.csv"), asset_id)
+
+
 def spiegazione_per(r, fattori):
     """Spiegazione in linguaggio operativo per una raccomandazione in coda."""
     return spiegatore.spiega(_rec(r), fattori)
@@ -177,6 +188,15 @@ with tab_coda:
                 st.warning(g["attenzione"])
             if g["se_cambiasse"]:
                 st.markdown(f"💡 *{g['se_cambiasse']}*")
+            simili = _simili(r.asset_id)
+            guasti = int(simili["guasto_entro_30gg"].sum())
+            st.markdown(f"📂 **Casi simili nello storico:** {guasti} su {len(simili)} impianti dello stesso tipo "
+                        "con sensori simili hanno avuto un guasto registrato.")
+            st.dataframe(simili[["asset_id", "area_geografica", "eta_anni", "vibrazione_indice",
+                                 "giorni_da_ultima_manutenzione", "carico_pct", "guasto_entro_30gg"]]
+                         .rename(columns={"guasto_entro_30gg": "guasto registrato"}),
+                         hide_index=True, width="stretch")
+            st.caption("È lo storico registrato: in aree con sotto-segnalazione (Sud) i guasti reali possono essere di più.")
             st.divider()
             st.caption("Dettagli per l'esperto")
             st.markdown(sp.testo)
@@ -371,3 +391,16 @@ with tab_kpi:
               delta="target 100%", delta_color="off")
     st.caption("Distribuzione livelli: " + " · ".join(
         f"{l} {n}" for l, n in k["distribuzione_livelli"].items()))
+
+    st.subheader("Carico e comportamento per revisore")
+    rev = om.per_revisore()
+    in_attesa = k["in_attesa"]
+    st.caption(f"In coda: {in_attesa} decisioni. Il \"tempo tra decisioni\" è l'intervallo tra due revisioni "
+               "consecutive dello stesso operatore: approssima il tempo dedicato a ogni card.")
+    if rev:
+        st.dataframe(pd.DataFrame(rev), hide_index=True, width="stretch")
+        for x in rev:
+            if x["allerta"]:
+                st.error(f"Possibile approvazione a occhi chiusi da parte di {x['revisore']}: {x['allerta']}.")
+    else:
+        st.caption("Nessuna decisione ancora revisionata.")
