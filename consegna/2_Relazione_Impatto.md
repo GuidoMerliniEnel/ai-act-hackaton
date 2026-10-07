@@ -2,16 +2,16 @@
 
 ## Rischi identificati e mitigazioni implementate
 
-| Rischio | Chi lo subisce | Mitigazione | Come si verifica |
-| --- | --- | --- | --- |
-| Guasto non previsto su utenza critica (es. ospedale) | Utenze servite, cittadini | Soglia 0.20 per utenze alte/critiche; decisioni su utenze critiche sempre HIC (D-02, D-08) | Guasti mancati su critiche/alte da 3/6 a 1/1 |
-| Label bias: guasti del Sud sotto-registrati | Territori del Sud | Area fuori dal modello; nessun aumento di soglia al Sud; allerta di calibrazione che vieta l'auto-esecuzione nell'area (D-03, D-05, D-19) | Gap di calibrazione Sud esposto in dashboard; decisioni HOTL del Sud diventano HITL |
-| Automation bias, approvazioni a occhi chiusi | Utenze, squadre | Motivazione obbligatoria, fotocopie bloccate, KPI A3/A4, incertezza sempre visibile (D-11, D-31) | KPI A4 in dashboard; test T2 |
-| Azione eseguita nonostante il rifiuto | Utenze, squadre | Un solo punto di esecuzione con controlli (D-10) | Test T1 |
-| Impossibilità di fermare una parte del sistema | Tutti | Stop per area, tipo o combinazione, anche sulla coda esistente; sblocco a quattro occhi; decisioni bloccate da risottomettere (D-13..D-16) | Test T3 |
-| Coda umana che non regge il carico | Operatori | SLA 30 minuti con escalation; soglia 0.30 invece di 0.20 per non saturare la coda (D-01, D-12) | KPI A5 |
-| Spiegazione incomprensibile o inventata | Operatore, giuria | Riquadro semplice a regole fisse; guardrail e fallback per l'LLM (D-20, D-31..D-34) | Test T4 |
-| Log manomesso | Auditor | Catena di hash, integrità sempre visibile (D-29, D-30) | Test T6 |
+| Rischio                                              | Chi lo subisce            | Mitigazione                                                                                                                                | Come si verifica                                                                    |
+| ---------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Guasto non previsto su utenza critica (es. ospedale) | Utenze servite, cittadini | Soglia 0.20 per utenze alte/critiche; decisioni su utenze critiche sempre HIC (D-02, D-08)                                                 | Guasti mancati su critiche/alte da 3/6 a 1/1                                        |
+| Label bias: guasti del Sud sotto-registrati          | Territori del Sud         | Area fuori dal modello; nessun aumento di soglia al Sud; allerta di calibrazione che vieta l'auto-esecuzione nell'area (D-03, D-05, D-19)  | Gap di calibrazione Sud esposto in dashboard; decisioni HOTL del Sud diventano HITL |
+| Automation bias, approvazioni a occhi chiusi         | Utenze, squadre           | Motivazione obbligatoria, fotocopie bloccate, KPI A3/A4, incertezza sempre visibile (D-11, D-31)                                           | KPI A4 in dashboard; test T2                                                        |
+| Azione eseguita nonostante il rifiuto                | Utenze, squadre           | Un solo punto di esecuzione con controlli (D-10)                                                                                           | Test T1                                                                             |
+| Impossibilità di fermare una parte del sistema       | Tutti                     | Stop per area, tipo o combinazione, anche sulla coda esistente; sblocco a quattro occhi; decisioni bloccate da risottomettere (D-13..D-16) | Test T3                                                                             |
+| Coda umana che non regge il carico                   | Operatori                 | SLA 30 minuti con escalation; soglia 0.30 invece di 0.20 per non saturare la coda (D-01, D-12)                                             | KPI A5                                                                              |
+| Spiegazione incomprensibile o inventata              | Operatore, giuria         | Riquadro semplice a regole fisse; guardrail e fallback per l'LLM (D-20, D-31..D-34)                                                        | Test T4                                                                             |
+| Log manomesso                                        | Auditor                   | Catena di hash, integrità sempre visibile (D-29, D-30)                                                                                     | Test T6                                                                             |
 
 ## Cosa NON abbiamo risolto
 
