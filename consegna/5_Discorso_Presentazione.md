@@ -78,9 +78,15 @@ _Tier 2C (emergency stop) · test T3_
 
 [Scheda Bias & drift]
 
-> Le metriche aggregate mentono, quindi le abbiamo divise per area e per tipo di asset. Sud e Isole hanno asset quasi identici per età, manutenzione e sensori, ma guasti registrati **0.24 contro 0.45**. Due ipotesi: i guasti del Sud sono **sotto-segnalati**, oppure i **processi di registrazione** sono diversi tra territori. I dati non le distinguono, ma la calibrazione indica la prima: il Sud è l'unica area dove il modello prevede molto più di quanto viene registrato.
+> Le metriche aggregate mentono, quindi le abbiamo divise per area e per tipo di asset. Nei dati storici abbiamo trovato **due problemi diversi**, e li trattiamo in modo diverso.
 >
-> Abbiamo tolto l'area dal modello perché faceva da proxy, e **non** abbiamo alzato la soglia al Sud, perché quei "falsi allarmi" potrebbero essere guasti veri. Poi un'**allerta che agisce**: oltre 0.10 di gap di calibrazione le decisioni dell'area passano a supervisione umana. Al Sud l'AI non esegue mai da sola.
+> **Il primo è nelle etichette, al Sud.** Sud e Isole hanno asset quasi identici: età 23 contro 25 anni, circa due manutenzioni in cinque anni, sensori uguali. Eppure i guasti registrati sono **0.24 contro 0.45**, e a parità di età il divario cresce: oltre i 25 anni 0.28 contro 0.54. Due ipotesi: i guasti del Sud sono **sotto-segnalati**, oppure le Isole registrano come guasti anche interventi che altrove non lo sono. La calibrazione indica la prima: le Isole sono in linea con quello che il modello si aspetta, il Sud no, scarto **0.18**, unica area in allerta.
+>
+> Un dettaglio che ci ha convinto: lo scarto del Sud è forte su **trasformatori e utenze standard**, quasi nullo sulle **utenze critiche**. Il guasto che lascia al buio un ospedale viene sempre registrato; quello su un'utenza qualunque, a quanto pare, no. È un'interpretazione, non una prova, ma è coerente con la sotto-segnalazione.
+>
+> Conseguenza pratica: il modello impara che al Sud "si guasta poco". Abbiamo tolto l'area dal modello perché faceva da proxy: il gap di recall tra aree è sceso da 0.41 a 0.22. Ma l'area rientra in modo indiretto: età e giorni dall'ultima manutenzione la indovinano nel 58% dei casi. E **non** abbiamo alzato la soglia al Sud: quei "falsi allarmi" possono essere guasti veri non registrati, e alzarla porterebbe il recall del Sud da 0.88 a 0.65. Poi un'**allerta che agisce**: oltre 0.10 di scarto di calibrazione le decisioni dell'area passano a supervisione umana. Al Sud l'AI non esegue mai da sola.
+>
+> **Il secondo problema è al Nord e al Centro, e non è un bias delle etichette**: la calibrazione è corretta. Il modello manca circa un guasto su quattro perché arriva **senza segnali nei sensori**: vibrazione media 2.8 contro 4.6 dei guasti presi. Lì non si corregge il dato: si aggiunge supervisione.
 
 [Mostrare recall con intervallo, tabelle incrociate, drift e override per area]
 
