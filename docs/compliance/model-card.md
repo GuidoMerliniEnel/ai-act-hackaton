@@ -135,8 +135,9 @@ review. With D-43 two remain, both in the Islands.
 !!! warning "Declared limits"
 
     - **Recall gap North (0.216 > 0.15).** Missed failures in the North and
-      Centre show no sensor signal (mean vibration 2.8 vs 4.6). The model is
-      well calibrated there, so this is a model limit, not label bias
+      Centre show no sensor signal (mean vibration 2.8 vs 4.6). The
+      calibration gap there stays under the 0.10 alert, so this is treated
+      as a model limit rather than label bias
       ([D-06](../decisions/index.md#d-06)). Oversight compensates in part:
       routine inspections there are no longer auto-executed
       ([D-43](../decisions/index.md#d-43)).
@@ -148,6 +149,10 @@ review. With D-43 two remain, both in the Islands.
       failures. It cannot be fixed in the model because the bias is in the
       labels; it is managed by oversight, and South decisions are promoted
       to HITL ([D-19](../decisions/index.md#d-19)).
+    - **The calibration alert uses absolute points.** In proportion the
+      North is close to the South (60 vs 57 recorded failures per 100
+      expected; average 71, Islands 107): the alert would not catch
+      under-recording in a low-failure area.
     - **High false-positive rate in South and Islands** (0.69 and 0.62).
       In the South many "false positives" may be real, unrecorded failures
       ([D-05](../decisions/index.md#d-05)).

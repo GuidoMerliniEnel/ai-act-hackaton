@@ -56,4 +56,11 @@ predict it 58% of the time. We keep them because they are real risk
 factors. 13. **Per-area differences are not statistically solid**: 24–43
 failures per area, overlapping confidence intervals. 14. **Two real failures in the Islands are still auto-executed**
 (risk 0.14–0.17), an area with no alert. D-43 also adds 84 HITL
-decisions on 720: KPI A5 must be watched.
+decisions on 720: KPI A5 must be watched. 15. **The calibration alert uses absolute points, not proportions.**
+The model over-predicts almost everywhere (25 vs 18 failures per 100,
+an effect of balanced class weights). Recorded failures per 100
+expected: North 60, Centre 67, South 57, Islands 107. Only the South
+exceeds the 0.10 gap (0.177), but in proportion the North is close and
+may hide under-recording behind its low base rate. The strongest
+evidence of the South bias remains the direct comparison with the
+Islands in the data.

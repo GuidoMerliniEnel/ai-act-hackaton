@@ -151,8 +151,8 @@ operator**, and blocked decisions never restart on their own.
 
 Two hypotheses: failures in the South are **under-reported**, or
 **recording processes** differ between territories. Calibration points to
-the first: the South is the only area where the model predicts far more
-than is recorded.
+the first: the South has by far the largest gap between predicted and
+recorded failures (in proportion the North is close, a declared limit).
 
 ### What we did
 

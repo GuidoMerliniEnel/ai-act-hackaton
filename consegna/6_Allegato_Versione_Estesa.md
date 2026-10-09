@@ -105,6 +105,7 @@ Prima della mitigazione (area nel modello, soglia unica 0.30): recall 0.798, gap
 12. **L'area entra ancora nel modello per via indiretta**: età e giorni dall'ultima manutenzione la indovinano nel 58% dei casi. Non la togliamo: sono anche fattori di rischio reali.
 13. **Le differenze tra aree non sono statisticamente solide**: 24-43 guasti per area, intervalli di confidenza sovrapposti. Le allerte vanno lette come segnali.
 14. **Restano 2 guasti reali auto-eseguiti nelle Isole** (rischio 0.14-0.17), area senza allerta. Più carico umano: D-43 aggiunge 83 decisioni HITL su 720 (KPI A5 da sorvegliare).
+15. **L'allerta di calibrazione guarda i punti, non le proporzioni.** Il modello prevede più guasti di quelli registrati quasi ovunque (25 contro 18 ogni 100, effetto dei pesi bilanciati). Ogni 100 guasti attesi ne risultano: Nord 60, Centro 67, Sud 57, Isole 107. Lo scarto supera 0.10 solo al Sud (0.177), ma in proporzione il Nord è vicino: anche lì potrebbe esserci sotto-registrazione, mascherata dal tasso basso. La prova più solida del bias al Sud resta il confronto diretto con le Isole sui dati.
 
 ## Dichiarazione di oversight · EnerGuard
 
