@@ -8,7 +8,7 @@ Testo da leggere o da seguire a voce, allineato alla [scaletta](4_Scaletta_Demo_
 
 > Buongiorno, siamo il team EnerGuard.
 >
-> Un modello prevede quali asset della rete elettrica si guasteranno entro trenta giorni: linee ad alta tensione, trasformatori, cabine primarie, turbine eoliche. Per l'AI Act è un sistema **ad alto rischio**, Allegato III: infrastruttura critica.
+> Un modello prevede quali asset della rete elettrica si guasteranno entro trenta giorni: linee ad alta tensione, trasformatori, cabine primarie, turbine eoliche. Per l'AI Act è un sistema **ad alto rischio**, Allegato III punto 2: gestione di infrastrutture critiche, fornitura di elettricità.
 >
 > Un guasto mancato su una cabina che alimenta un ospedale non si recupera; un'ispezione inutile costa qualche ora. Per questo abbiamo scelto la soglia di intervento in base ai costi: **0.30 per le utenze standard e 0.20 per quelle alte e critiche**, assumendo che un guasto mancato costi dieci volte un'ispezione inutile. Il modello è quello del kit, AUC 0.868: non abbiamo inseguito l'accuratezza, abbiamo costruito un sistema che un operatore può **capire, monitorare, correggere e fermare**.
 
@@ -38,7 +38,7 @@ _Tier 2A (matrice di routing con soglie)_
 >
 > Lo scenario **"e se..."** è calcolato dal modello: con la vibrazione nella media il rischio scenderebbe a 3 su 10, ma servirebbe comunque un controllo. E i **tre asset più simili** dello stesso tipo si sono guastati tutti e tre.
 >
-> I dettagli per l'esperto mostrano i tre fattori con la loro direzione e la **fonte** della spiegazione: oggi il template; con l'LLM attivo resta lo stesso schema, con guardrail e ritorno automatico al template.
+> I dettagli per l'esperto mostrano i tre fattori con la loro direzione e la **fonte** della spiegazione: qui un LLM, che traduce i numeri ma non decide e non calcola. Se inventa un numero o usa gergo, la risposta viene scartata; se la rete cade, torna il template e la fonte lo dichiara.
 
 _Tier 3A (spiegabilità, incertezza visibile) · test T4_
 
@@ -50,7 +50,9 @@ _Tier 3A (spiegabilità, incertezza visibile) · test T4_
 
 [Scrivere "Sopralluogo di ieri: vibrazione nella norma, sensore da ricalibrare" e premere Rifiuta]
 
-> Con una motivazione vera la decisione esce dalla coda e **non viene eseguita**. Nel codice c'è **un solo punto di esecuzione**, `_esegui`: una decisione rifiutata, in attesa, sotto stop o HIC non può arrivarci. Se nessuno decide entro 30 minuti, va in escalation: mai eseguita in silenzio.
+> Con una motivazione vera la decisione esce dalla coda e **non viene eseguita**. Nel codice c'è **un solo punto di esecuzione**, `_esegui`: una decisione rifiutata, in attesa o sotto stop non può arrivarci, e una HIC ci arriva solo dopo l'approvazione di un umano. Se nessuno decide entro 30 minuti, va in escalation: mai eseguita in silenzio.
+>
+> Una nota onesta: nei dati storici questa cabina si è **guastata davvero**. Il rifiuto dimostra che il blocco funziona, non che fosse la scelta giusta. Anche l'umano sbaglia: per questo misuriamo gli override per area e per revisore.
 
 _Tier 2B (coda, motivazione, SLA) · test T1, T2_
 
@@ -58,7 +60,7 @@ _Tier 2B (coda, motivazione, SLA) · test T1, T2_
 
 [Scheda Audit trail: cercare AST-01148]
 
-> Chi ha deciso, cosa, quando e perché: lo ricostruiamo in pochi secondi, senza aprire il file. Ogni riga contiene l'hash della precedente: se qualcuno modifica una motivazione, la catena si rompe e lo vediamo in ogni schermata.
+> Chi ha deciso, cosa, quando e perché: lo ricostruiamo in pochi secondi, senza aprire il file. Ogni riga contiene l'hash della precedente: se qualcuno modifica una motivazione, la catena si rompe e lo vediamo in ogni schermata. Il log si esporta in CSV o nel formato originale con gli hash, per un auditor esterno.
 
 _Tier 3C (audit filtrabile, integrità) · test T6_
 
@@ -100,7 +102,7 @@ _Tier 1 (metriche disaggregate, due ipotesi) · Tier 3B (bias, drift, override, 
 > - con 24-43 guasti per area le differenze sono **segnali, non prove**;
 > - il **drift è simulato** e due guasti nelle Isole restano automatici.
 >
-> Tutto è nella **model card**, nella **relazione d'impatto** e nella **dichiarazione di oversight**. Nel mondo reale il **provider** è chi sviluppa il sistema e risponde di dati, documentazione, logging e progettazione della supervisione; il **deployer** è l'operatore di rete, che deve affidarlo a persone formate, monitorarlo e conservare i log.
+> Tutto è nella **model card**, nella **relazione d'impatto** e nella **dichiarazione di oversight**. Nel mondo reale il **provider** è chi sviluppa il sistema e risponde di dati, documentazione, logging e progettazione della supervisione; il **deployer** è l'operatore di rete, che deve affidarlo a persone formate, monitorarlo e conservare i log. Se l'azienda lo sviluppa in casa e lo usa, è **entrambi**; se lo acquista e lo mette in servizio con il proprio nome, ne diventa comunque provider.
 
 _Tier 4 (documenti, limiti, provider e deployer)_
 
@@ -130,12 +132,18 @@ _Tier 4 (documenti, limiti, provider e deployer)_
 
 ## Promemoria per le domande
 
-| Domanda                                 | Risposta breve                                                                                                             |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Perché non avete migliorato il modello? | La guida lo sconsiglia, e il problema principale è nelle etichette, non nell'algoritmo                                     |
-| Perché l'LLM?                           | Solo per i dettagli tecnici, con guardrail e fallback. La parte per tutti è a regole fisse                                 |
-| Che cosa succede se stacco la rete?     | La card resta spiegata; la fonte dice `template(fallback:...)`                                                             |
-| Dov'è l'unico punto di esecuzione?      | `OversightManager._esegui`: due chiamate, HOTL auto-eseguita e revisione approvata o modificata                            |
-| Il log si può manomettere?              | Si può modificare, ma non in silenzio: la catena di hash si rompe e la barra in alto lo segnala                            |
-| Perché non alzate la soglia al Sud?     | I "falsi positivi" del Sud possono essere guasti veri non registrati: alzarla amplificherebbe il bias (recall 0.88 → 0.65) |
-| Perché 0.30 e 0.20?                     | Costo 10:1 tra guasto mancato e ispezione inutile; 0.20 ovunque avrebbe saturato la coda umana (230 ispezioni inutili)     |
+| Domanda                                                   | Risposta breve                                                                                                                                                                                                                             |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Perché non avete migliorato il modello?                   | La guida lo sconsiglia, e il problema principale è nelle etichette, non nell'algoritmo                                                                                                                                                     |
+| Perché l'LLM?                                             | Solo per i dettagli tecnici, con guardrail e fallback. La parte per tutti è a regole fisse                                                                                                                                                 |
+| Che cosa succede se stacco la rete?                       | La card resta spiegata; la fonte dice `template(fallback:...)`                                                                                                                                                                             |
+| Dov'è l'unico punto di esecuzione?                        | `OversightManager._esegui`: due chiamate, HOTL auto-eseguita e revisione approvata o modificata                                                                                                                                            |
+| Il log si può manomettere?                                | Una modifica isolata si vede: la catena si rompe e la barra lo segnala. Chi riscrive tutta la catena o cancella le ultime righe non viene scoperto: in produzione servono hash con chiave o l'ultimo hash conservato fuori dal sistema     |
+| Il Sud non è penalizzato da HITL?                         | No: più supervisione, non meno servizio. Le decisioni arrivano comunque, ma passano da un umano                                                                                                                                            |
+| È davvero alto rischio?                                   | Lo trattiamo così (Allegato III punto 2). L'Art. 6(3) esclude i compiti preparatori a una decisione umana, ma le decisioni HOTL eseguite da sole rendono la deroga difficile da sostenere                                                  |
+| Serve una valutazione d'impatto sui diritti fondamentali? | No: l'Art. 27 esclude il punto 2 dell'Allegato III. La nostra relazione è un'analisi dei rischi, non una FRIA                                                                                                                              |
+| Misurate gli operatori: è lecito?                         | È controllo a distanza: servono informativa ai rappresentanti dei lavoratori (Art. 26(7)), Statuto dei Lavoratori art. 4 e GDPR. Usarlo per valutare le persone lo renderebbe un altro sistema ad alto rischio (Allegato III punto 4)      |
+| Mandate dati di rete a un LLM esterno?                    | Codice, tipo e area dell'asset più i numeri già calcolati; nessun dato personale. Sono comunque dati di un'infrastruttura critica affidati a un fornitore cloud: rischio di riservatezza e dipendenza, mitigato solo in parte dal fallback |
+| Se si verifica un guasto grave?                           | Il provider deve segnalare gli incidenti gravi (Art. 73), anche le perturbazioni di infrastrutture critiche: stop e audit trail sono la base per farlo                                                                                     |
+| Perché non alzate la soglia al Sud?                       | I "falsi positivi" del Sud possono essere guasti veri non registrati: alzarla amplificherebbe il bias (recall 0.88 → 0.65)                                                                                                                 |
+| Perché 0.30 e 0.20?                                       | Costo 10:1 tra guasto mancato e ispezione inutile; 0.20 ovunque avrebbe saturato la coda umana (230 ispezioni inutili)                                                                                                                     |

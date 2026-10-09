@@ -303,3 +303,8 @@ Implementata in `utils_io.prepara_feature` (area esclusa, unico punto usato da t
   - Licenza Apache-2.0 con "Copyright Enel SpA" su un repository pubblico che contiene anche i PDF del corso Deloitte × ENEL: verificare che sia consentito.
   - `ci.yml` parte a ogni push con controlli di sicurezza e licenze: verificare il primo esito su GitHub Actions.
   - GitHub Pages pubblica il sito solo dopo l'attivazione manuale in Settings → Pages: decidere se attivarla.
+
+## Revisione del discorso di presentazione (9 ottobre)
+
+- `consegna/5_Discorso_Presentazione.md` allineato a codice e documenti: Allegato III punto 2; fonte della spiegazione = LLM (D-20), non template; `_esegui` accetta una HIC solo dopo approvazione umana; AST-01148 si e' guastata davvero (rifiuto = prova del blocco, non scelta giusta); export dell'audit; provider e deployer coincidono se lo sviluppo e' interno.
+- Risposta sul log corretta: la catena senza chiave non rileva riscrittura completa o taglio delle ultime righe. Nuove domande attese: Art. 6(3), Art. 27, monitoraggio operatori (Art. 26(7), Statuto art. 4), dati al fornitore LLM, Art. 73.
