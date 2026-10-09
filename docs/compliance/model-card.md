@@ -104,13 +104,13 @@ proven difference.
 Groups with at least 15 assets. A group can look fine on each axis and
 badly at the intersection.
 
-| Group                       | n   | Recall | FPR  | Calibration gap |
-| --------------------------- | --- | ------ | ---- | --------------- |
-| Centro · standard           | 122 | 0.65   | 0.17 | +0.05           |
-| Nord · standard             | 200 | 0.68   | 0.12 | +0.06           |
-| Sud · standard              | 86  | 0.76   | 0.67 | **+0.21**       |
-| Sud · trasformatore         | 48  | 0.88   | 0.70 | **+0.25**       |
-| Sud · critica               | 16  | 1.00   | 0.67 | +0.02           |
+| Group               | n   | Recall | FPR  | Calibration gap |
+| ------------------- | --- | ------ | ---- | --------------- |
+| Centro · standard   | 122 | 0.65   | 0.17 | +0.05           |
+| Nord · standard     | 200 | 0.68   | 0.12 | +0.06           |
+| Sud · standard      | 86  | 0.76   | 0.67 | **+0.21**       |
+| Sud · trasformatore | 48  | 0.88   | 0.70 | **+0.25**       |
+| Sud · critica       | 16  | 1.00   | 0.67 | +0.02           |
 
 - Standard users in the North and Centre are the worst-served group.
 - The South label bias is concentrated on transformers and standard users;
