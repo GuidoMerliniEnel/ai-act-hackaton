@@ -265,10 +265,11 @@ class SpiegatoreLLM:
                              {"cache_key": chiave})
             self.chiamate["ok"] += 1
             self._log("SISTEMA", "spiegazione_llm_ok", rec, sp)
+            if self.cache is not None:
+                self.cache[chiave] = sp
         except Exception as e:  # qualunque errore: rete, quota, JSON malformato, guardrail
+            # niente cache sul fallback: un errore di rete passeggero non deve restare per sempre
             sp = self._fallback(rec, fattori, f"{type(e).__name__}: {str(e)[:120]}")
-        if self.cache is not None:
-            self.cache[chiave] = sp
         return sp
 
     # ------------------------------------------------------------------ interno
